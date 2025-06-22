@@ -1,0 +1,49 @@
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>R.M. Estética Automotiva</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>🚗 R.M. Estética Automotiva</h1>
+  </header>
+
+  <main>
+    <section id="cadastro-cliente">
+      <h2>👤 Cadastro de Cliente</h2>
+      <input type="text" id="nome" placeholder="Nome do cliente">
+      <input type="text" id="telefone" placeholder="Telefone">
+      <button onclick="cadastrarCliente()">Salvar Cliente</button>
+    </section>
+
+    <section id="cadastro-servico">
+      <h2>🧼 Cadastro de Serviço</h2>
+      <input type="text" id="descricao" placeholder="Descrição do serviço">
+      <input type="number" id="valor" placeholder="Valor (R$)">
+      <button onclick="cadastrarServico()">Salvar Serviço</button>
+    </section>
+
+    <section id="orcamento">
+      <h2>🧾 Gerar Orçamento</h2>
+      <input type="text" id="clienteId" placeholder="ID do Cliente">
+      <input type="text" id="servicoId" placeholder="ID do Serviço">
+      <button onclick="gerarOrcamento()">Gerar Orçamento</button>
+    </section>
+
+    <section id="historico">
+      <h2>📜 Histórico</h2>
+      <div id="lista-historico"></div>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 R.M. Estética Automotiva</p>
+  </footer>
+
+  <script type="module" src="script.js"></script>
+</body>
+</html>
