@@ -1,8 +1,6 @@
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-import {
-  getFirestore, collection, addDoc, getDocs, serverTimestamp
-} from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBqioC-oJl3_gRKiRgGP7uR826tera1SJ4",
@@ -21,7 +19,7 @@ window.cadastrarCliente = async () => {
   const telefone = document.getElementById('telefone').value;
   if (!nome || !telefone) return alert("Preencha todos os campos!");
   await addDoc(collection(db, "clientes"), { nome, telefone, criadoEm: serverTimestamp() });
-  alert("✅ Cliente cadastrado!");
+  alert("Cliente cadastrado!");
 };
 
 window.cadastrarServico = async () => {
@@ -29,63 +27,59 @@ window.cadastrarServico = async () => {
   const valor = parseFloat(document.getElementById('valor').value);
   if (!descricao || isNaN(valor)) return alert("Preencha todos os campos!");
   await addDoc(collection(db, "servicos"), { descricao, valor, criadoEm: serverTimestamp() });
-  alert("✅ Serviço cadastrado!");
+  alert("Serviço cadastrado!");
 };
 
 window.gerarOrcamento = async () => {
   const clienteId = document.getElementById('clienteId').value;
   const servicoId = document.getElementById('servicoId').value;
-  const taxaBase = 20.0;
+  const forma = document.getElementById('pagamento').value;
+  const taxa = 20;
 
-  const clientesSnap = await getDocs(collection(db, "clientes"));
-  const servicosSnap = await getDocs(collection(db, "servicos"));
-  const cliente = clientesSnap.docs.find(doc => doc.id === clienteId)?.data();
-  const servico = servicosSnap.docs.find(doc => doc.id === servicoId)?.data();
+  const clientes = await getDocs(collection(db, "clientes"));
+  const servicos = await getDocs(collection(db, "servicos"));
 
-  if (!cliente || !servico) return alert("ID de cliente ou serviço inválido");
+  const cliente = clientes.docs.find(doc => doc.id === clienteId)?.data();
+  const servico = servicos.docs.find(doc => doc.id === servicoId)?.data();
+  if (!cliente || !servico) return alert("IDs inválidos!");
 
-  const total = parseFloat(servico.valor) + taxaBase;
+  const total = parseFloat(servico.valor) + taxa;
 
-  const orcamento = {
+  const texto = `
+R.M. Estética Automotiva
+Cliente: ${cliente.nome}
+Telefone: ${cliente.telefone}
+Serviço: ${servico.descricao}
+Valor: R$ ${servico.valor.toFixed(2)}
+Taxa: R$ ${taxa.toFixed(2)}
+Forma: ${forma}
+Total: R$ ${total.toFixed(2)}
+Data: ${new Date().toLocaleString()}`;
+
+  document.getElementById("cupom").innerText = texto;
+
+  await addDoc(collection(db, "orcamentos"), {
     cliente: cliente.nome,
     telefone: cliente.telefone,
     servico: servico.descricao,
-    valorServico: servico.valor,
-    taxaBase,
+    valor: servico.valor,
+    taxa,
     total,
+    forma,
     criadoEm: serverTimestamp()
-  };
+  });
 
-  await addDoc(collection(db, "orcamentos"), orcamento);
-
-  // Exibir cupom no console (poderá ser visual futuramente)
-  console.log("🧾 CUPOM GERADO:");
-  console.log(`Cliente: ${orcamento.cliente}`);
-  console.log(`Serviço: ${orcamento.servico}`);
-  console.log(`Valor Serviço: R$ ${orcamento.valorServico}`);
-  console.log(`Taxa Base: R$ ${orcamento.taxaBase}`);
-  console.log(`Total: R$ ${orcamento.total}`);
-
-  // Link para WhatsApp
-  const msg = `Olá ${orcamento.cliente}, aqui está seu orçamento da R.M. Estética Automotiva:\n` +
-              `Serviço: ${orcamento.servico}\n` +
-              `Valor: R$ ${orcamento.valorServico}\n` +
-              `Taxa base: R$ ${orcamento.taxaBase}\n` +
-              `Total: R$ ${orcamento.total}`;
-  const whatsappLink = `https://wa.me/55${cliente.telefone.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`;
-
-  window.open(whatsappLink, '_blank');
-  alert("✅ Orçamento gerado e enviado para o WhatsApp!");
+  const link = `https://wa.me/55${cliente.telefone.replace(/\D/g, '')}?text=${encodeURIComponent(texto)}`;
+  window.open(link, "_blank");
 };
 
-// Histórico (exibe orçamentos)
 window.addEventListener("load", async () => {
-  const historicoDiv = document.getElementById("lista-historico");
+  const div = document.getElementById("lista-historico");
   const snap = await getDocs(collection(db, "orcamentos"));
   snap.forEach(doc => {
     const d = doc.data();
-    const item = document.createElement("div");
-    item.innerHTML = `<strong>${d.cliente}</strong> - ${d.servico} - Total: R$ ${d.total}`;
-    historicoDiv.appendChild(item);
+    const el = document.createElement("div");
+    el.innerText = `${d.cliente} - ${d.servico} - R$ ${d.total}`;
+    div.appendChild(el);
   });
 });
