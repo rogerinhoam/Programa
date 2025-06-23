@@ -58,9 +58,6 @@
       .btn-secondary { background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border-color); }
       .hidden { display: none; }
       .toast { padding: 15px 20px; border-radius: 8px; color: white; font-weight: 600; box-shadow: 0 4px 10px rgba(0,0,0,0.3); background-color: #333; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 3000; }
-      .toast.success { background-color: #28a745; }
-      .toast.error { background-color: #d9534f; }
-      .toast.info { background-color: #31708f; }
       @media (max-width: 768px) { main { padding: 15px 10px; } nav button { padding: 10px 12px; } #sync-button { margin-left: 0; } .btn-group { grid-template-columns: 1fr; } }
     </style>
 </head>
@@ -110,7 +107,7 @@
         <button type="submit" class="btn-primary">Salvar Orçamento</button>
     </form>
   </section>
-
+  
   <section id="historico" class="tab-content card hidden">
     <h3>Histórico de Orçamentos</h3>
     <p style="color: var(--text-secondary); margin-top: -10px; font-size: 0.9rem;">Selecione um orçamento para ver os detalhes</p>
@@ -207,7 +204,9 @@
         const form = e.target;
         const tableName = form.id.split('-')[1] + 's';
         const button = form.querySelector('button[type=submit]');
+        const originalText = button.textContent;
         button.disabled = true;
+        button.textContent = "SALVANDO...";
         
         const id = form.querySelector('input[type=hidden]')?.value;
         const formData = new FormData(form);
@@ -230,6 +229,7 @@
             document.querySelector(`button[data-tab="${nextTab}"]`)?.click();
         }
         button.disabled = false;
+        button.textContent = originalText;
     }
     
     function renderHistoricoDetails(orcamento) {
@@ -342,18 +342,20 @@ PAGAMENTO:
         document.getElementById('main-container').addEventListener('click', async e => {
             const button = e.target.closest('button[data-action]');
             const li = e.target.closest('li[data-obj]');
-            
-            if (li && !button) { // Clicou no item da lista de histórico
-                if (li.parentElement.id === 'lista-historico') {
-                    const orcamento = JSON.parse(li.dataset.obj);
+            const historicoLi = e.target.closest('#lista-historico li');
+
+            if (historicoLi && !button) {
+                const orcamentoId = parseInt(historicoLi.dataset.id);
+                const orcamento = state.orcamentos.find(o => o.id === orcamentoId);
+                if (orcamento) {
                     document.querySelectorAll('#lista-historico li').forEach(item => item.classList.remove('selected'));
-                    li.classList.add('selected');
+                    historicoLi.classList.add('selected');
                     renderHistoricoDetails(orcamento);
                 }
                 return;
             }
-
-            if(!button) return;
+            
+            if(!button || !li) return;
             const itemData = JSON.parse(li.dataset.obj);
             const action = button.dataset.action;
             const type = button.dataset.type;
