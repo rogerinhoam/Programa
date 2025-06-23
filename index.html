@@ -3,407 +3,348 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>R.M. Estética Automotiva - Gestão</title>
-
+<title>R.M. Estética Automotiva</title>
 <style>
-  /* Estilo escuro com vermelho e amarelo suaves */
+  @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
+
+  * {
+    box-sizing: border-box;
+  }
   body {
-    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-    background: #1f1f1f;
+    margin: 0;
+    font-family: 'Montserrat', sans-serif;
+    background-color: #121212;
     color: #f0e6d2;
-    margin: 0; padding: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   header {
-    background: #7a1919;
-    padding: 1rem 2rem;
-    color: #f0d479;
+    background: #7f1d1d;
+    color: #ffdd57;
+    padding: 20px;
     text-align: center;
+    font-size: 1.8rem;
     font-weight: 700;
-    font-size: 1.6rem;
-    letter-spacing: 1.5px;
+    letter-spacing: 2px;
+    text-shadow: 1px 1px 4px #330000;
     user-select: none;
   }
   nav {
     display: flex;
-    justify-content: center;
-    background: #8b2d2d;
+    background: #1f1f1f;
+    box-shadow: inset 0 -3px 5px #7f1d1d;
   }
   nav button {
-    background: transparent;
+    flex: 1;
+    padding: 15px 0;
     border: none;
-    color: #f0d479;
-    padding: 1rem 1.8rem;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 1.1rem;
-    transition: background-color 0.3s ease;
-    user-select: none;
-  }
-  nav button:hover, nav button.active {
-    background-color: #f0d479;
-    color: #7a1919;
+    background: #2a2a2a;
+    color: #f0e6d2;
     font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    position: relative;
   }
-  main {
-    max-width: 980px;
-    margin: 1.5rem auto 3rem;
-    padding: 0 1rem;
+  nav button:hover {
+    background: #7f1d1d;
+    color: #fff3b0;
+  }
+  nav button.active {
+    background: #7f1d1d;
+    color: #ffdd57;
+    box-shadow: 0 3px 10px #ffdd57aa;
+    font-size: 1.1rem;
   }
   section {
+    max-width: 600px;
+    margin: 30px auto;
+    padding: 0 15px;
     display: none;
-    animation: fadeIn 0.4s ease forwards;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
   }
   section.active {
     display: block;
+    opacity: 1;
+    transform: translateY(0);
   }
-  @keyframes fadeIn {
-    from {opacity: 0;}
-    to {opacity: 1;}
+  h2 {
+    color: #ffdd57;
+    margin-bottom: 15px;
+    user-select: none;
   }
   form {
-    background: #2b2b2b;
-    padding: 1rem 1.5rem;
-    border-radius: 6px;
-    margin-bottom: 2rem;
+    display: flex;
+    flex-direction: column;
   }
-  label {
-    display: block;
-    margin-bottom: 0.3rem;
-    font-weight: 600;
-  }
-  input[type=text], input[type=number], select {
-    width: 100%;
-    padding: 0.5rem;
-    border-radius: 4px;
+  input, select, textarea, button {
+    padding: 12px 15px;
+    margin-bottom: 15px;
+    border-radius: 8px;
     border: none;
-    margin-bottom: 1rem;
-    background: #444;
-    color: #f0e6d2;
     font-size: 1rem;
+    font-family: 'Montserrat', sans-serif;
   }
-  input[type=text]::placeholder, input[type=number]::placeholder {
-    color: #c9b879;
-  }
-  button[type=submit] {
-    background: #f0d479;
-    border: none;
-    padding: 0.8rem 1.5rem;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 700;
-    font-size: 1.1rem;
-    color: #7a1919;
+  input, select, textarea {
+    background-color: #222;
+    color: #f0e6d2;
+    box-shadow: inset 2px 2px 5px #000000cc;
     transition: background-color 0.3s ease;
   }
-  button[type=submit]:hover {
-    background: #d4b14d;
+  input::placeholder, select::placeholder {
+    color: #bbb;
   }
-  .listagem {
-    background: #2b2b2b;
-    border-radius: 6px;
-    padding: 1rem;
-    margin-bottom: 2rem;
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    background-color: #3a1f1f;
+    box-shadow: inset 2px 2px 7px #ffdd57cc;
   }
-  .listagem table {
-    width: 100%;
-    border-collapse: collapse;
-    color: #f0e6d2;
-  }
-  .listagem th, .listagem td {
-    text-align: left;
-    padding: 0.6rem 0.8rem;
-    border-bottom: 1px solid #444;
-    font-size: 0.9rem;
-  }
-  .listagem th {
-    background: #3e3e3e;
-  }
-  .btn-acao {
-    background: #7a1919;
-    border: none;
-    padding: 0.25rem 0.6rem;
-    margin-right: 0.3rem;
-    border-radius: 4px;
+  button[type="submit"] {
+    background-color: #7f1d1d;
+    color: #ffdd57;
+    font-weight: 700;
     cursor: pointer;
-    color: #f0d479;
+    box-shadow: 0 0 10px #ffdd57bb;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  }
+  button[type="submit"]:hover {
+    background-color: #aa2e2e;
+    box-shadow: 0 0 20px #ffdd57ee;
+  }
+  ul {
+    list-style: none;
+    padding: 0;
+  }
+  li {
+    background-color: #222;
+    margin-bottom: 10px;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 0 5px #7f1d1d88;
+    font-size: 1rem;
+    user-select: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  li > div {
+    flex-grow: 1;
+  }
+  li button {
+    margin-left: 10px;
+    background: #7f1d1d;
+    border: none;
+    color: #ffdd57;
+    padding: 6px 12px;
+    border-radius: 5px;
+    cursor: pointer;
     font-weight: 700;
     font-size: 0.85rem;
     transition: background-color 0.3s ease;
   }
-  .btn-acao:hover {
-    background: #d4b14d;
-    color: #7a1919;
+  li button:hover {
+    background: #aa2e2e;
   }
-  .btn-acao.excluir {
-    background: #9f3c3c;
-  }
-  .btn-acao.excluir:hover {
-    background: #e44c4c;
-    color: white;
-  }
-  /* Histórico e cupom */
-  .historico-lista {
-    max-height: 300px;
-    overflow-y: auto;
-  }
-  .cupom {
-    background: #222;
-    color: #f0d479;
+  .orcamento-box {
+    white-space: pre-line;
+    background-color: #1b1b1b;
+    border: 2px solid #7f1d1d;
+    padding: 15px;
+    border-radius: 10px;
+    margin-top: 20px;
     font-family: monospace;
-    white-space: pre;
-    padding: 1rem;
-    border-radius: 6px;
-    margin-top: 1rem;
-  }
-  .acoes-historico {
-    margin-top: 0.7rem;
-    display: flex;
-    gap: 1rem;
-  }
-  .btn-acao.grande {
-    padding: 0.6rem 1.2rem;
     font-size: 1rem;
+    color: #ffdd57;
+    user-select: text;
+  }
+  .actions {
+    margin-top: 15px;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+  }
+  .actions button {
+    padding: 10px 18px;
+    font-weight: 700;
+    font-size: 1rem;
+    border-radius: 8px;
+    background-color: #7f1d1d;
+    color: #ffdd57;
+    cursor: pointer;
+    box-shadow: 0 0 10px #ffdd57bb;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    user-select: none;
+  }
+  .actions button:hover {
+    background-color: #aa2e2e;
+    box-shadow: 0 0 20px #ffdd57ee;
+  }
+  @media (max-width: 640px) {
+    body {
+      font-size: 14px;
+    }
+    header {
+      font-size: 1.4rem;
+      padding: 15px;
+    }
+    nav button {
+      font-size: 0.9rem;
+      padding: 12px 0;
+    }
+    section {
+      margin: 20px 10px;
+    }
   }
 </style>
 </head>
 <body>
 
-<header>R.M. Estética Automotiva - Gestão</header>
+<header>✨ R.M. Estética Automotiva ✨</header>
 
 <nav>
-  <button class="active" data-target="clientes">Clientes</button>
-  <button data-target="servicos">Serviços</button>
-  <button data-target="orcamentos">Orçamentos</button>
-  <button data-target="historico">Histórico</button>
+  <button class="active" data-tab="clientes">👤 Clientes</button>
+  <button data-tab="servicos">🛠 Serviços</button>
+  <button data-tab="orcamento">📋 Orçamento</button>
+  <button data-tab="historico">📜 Histórico</button>
 </nav>
 
-<main>
-  <!-- Clientes -->
-  <section id="clientes" class="active">
-    <form id="form-cliente">
-      <h2>Cadastrar Cliente</h2>
-      <label for="nome-cliente">Nome</label>
-      <input type="text" id="nome-cliente" placeholder="Nome completo" required />
-      <label for="telefone-cliente">Telefone</label>
-      <input type="text" id="telefone-cliente" placeholder="(xx) xxxx-xxxx" required />
-      <label for="carro-cliente">Carro</label>
-      <input type="text" id="carro-cliente" placeholder="Modelo do carro" />
-      <label for="placa-cliente">Placa</label>
-      <input type="text" id="placa-cliente" placeholder="Placa do carro" />
-      <button type="submit">Salvar Cliente</button>
-    </form>
-    <div class="listagem" id="lista-clientes">
-      <h3>Clientes Cadastrados</h3>
-      <table>
-        <thead><tr><th>Nome</th><th>Telefone</th><th>Carro</th><th>Placa</th><th>Ações</th></tr></thead>
-        <tbody id="tbody-clientes"></tbody>
-      </table>
-    </div>
-  </section>
+<section id="clientes" class="active" aria-label="Clientes">
+  <h2>👤 Cadastro de Clientes</h2>
+  <form id="form-clientes" autocomplete="off">
+    <input type="text" id="nome" placeholder="Nome completo" required />
+    <input type="tel" id="telefone" placeholder="Telefone (opcional)" />
+    <input type="text" id="carro" placeholder="Carro (opcional)" />
+    <input type="text" id="placa" placeholder="Placa (opcional)" />
+    <button type="submit">Salvar Cliente 💾</button>
+  </form>
+  <ul id="lista-clientes"></ul>
+</section>
 
-  <!-- Serviços -->
-  <section id="servicos">
-    <form id="form-servico">
-      <h2>Cadastrar Serviço</h2>
-      <label for="descricao-servico">Descrição</label>
-      <input type="text" id="descricao-servico" placeholder="Descrição do serviço" required />
-      <label for="valor-servico">Valor (R$)</label>
-      <input type="number" id="valor-servico" min="0" step="0.01" placeholder="Ex: 80.00" required />
-      <button type="submit">Salvar Serviço</button>
-    </form>
-    <div class="listagem" id="lista-servicos">
-      <h3>Serviços Cadastrados</h3>
-      <table>
-        <thead><tr><th>Descrição</th><th>Valor (R$)</th><th>Ações</th></tr></thead>
-        <tbody id="tbody-servicos"></tbody>
-      </table>
-    </div>
-  </section>
+<section id="servicos" aria-label="Serviços">
+  <h2>🛠 Cadastro de Serviços</h2>
+  <form id="form-servicos" autocomplete="off">
+    <input type="text" id="descricao" placeholder="Descrição do serviço" required />
+    <input type="number" id="valor" placeholder="Valor R$" min="0" step="0.01" required />
+    <button type="submit">Salvar Serviço 💾</button>
+  </form>
+  <ul id="lista-servicos"></ul>
+</section>
 
-  <!-- Orçamentos -->
-  <section id="orcamentos">
-    <form id="form-orcamento">
-      <h2>Criar Orçamento</h2>
-      <label for="select-cliente">Cliente</label>
-      <select id="select-cliente" required>
-        <option value="">Selecione um cliente</option>
-      </select>
-      <label for="select-servico">Serviço</label>
-      <select id="select-servico" required>
-        <option value="">Selecione um serviço</option>
-      </select>
-      <label for="desconto">Desconto (%)</label>
-      <input type="number" id="desconto" min="0" max="100" step="0.1" placeholder="0" />
-      <button type="submit">Salvar Orçamento</button>
-    </form>
-    <div class="listagem" id="lista-orcamentos">
-      <h3>Orçamentos Criados</h3>
-      <table>
-        <thead><tr><th>Cliente</th><th>Serviço</th><th>Desconto</th><th>Total (R$)</th><th>Ações</th></tr></thead>
-        <tbody id="tbody-orcamentos"></tbody>
-      </table>
-    </div>
-  </section>
+<section id="orcamento" aria-label="Orçamento">
+  <h2>📋 Gerar Orçamento</h2>
+  <form id="form-orcamento" autocomplete="off">
+    <select id="select-cliente" required aria-label="Selecione cliente"></select>
+    <select id="select-servico" required aria-label="Selecione serviço"></select>
+    <input type="number" id="desconto" placeholder="Desconto (%)" min="0" max="100" step="1" />
+    <button type="submit">Salvar Orçamento 💾</button>
+  </form>
+</section>
 
-  <!-- Histórico -->
-  <section id="historico">
-    <h2>Histórico de Orçamentos</h2>
-    <div class="historico-lista" id="lista-historico"></div>
-    <div id="detalhe-cupom" class="cupom" style="display:none;"></div>
-    <div class="acoes-historico" style="display:none;" id="acoes-cupom">
-      <button class="btn-acao grande" id="btn-salvar-pdf">Salvar PDF</button>
-      <button class="btn-acao grande" id="btn-enviar-whatsapp">Enviar WhatsApp</button>
-    </div>
-  </section>
-</main>
+<section id="historico" aria-label="Histórico">
+  <h2>📜 Histórico de Orçamentos</h2>
+  <ul id="lista-orcamentos"></ul>
+  <pre id="orcamento-box" class="orcamento-box" aria-live="polite" aria-atomic="true"></pre>
+  <div class="actions">
+    <button id="btnSalvarOrcamento">Salvar Orçamento 💾</button>
+    <button id="btnEnviarOrcamento">Enviar Orçamento 📤</button>
+    <button id="btnSalvarCupom">Salvar Cupom 💾</button>
+    <button id="btnEnviarCupom">Enviar Cupom 📤</button>
+  </div>
+</section>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 <script>
-  const { jsPDF } = window.jspdf;
-
-  // Config Supabase - insira sua URL e KEY aqui
-  const supabaseUrl = 'https://zkdfimbfwgofkmmcvyfu.supabase.co';
-  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InprZGZpbWJmd2dvZmttbWN2eWZ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA2MzQxMTksImV4cCI6MjA2NjIxMDExOX0.vOTrEVYX30FpWPQykY5CF1QCfkyG5gDLnI_2N9TATRE';
-  const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+  const supabase = supabase.createClient(
+    'https://zkdfimbfwgofkmmcvyfu.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InprZGZpbGJmd2dvZmttbWN2eWZ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA2MzQxMTksImV4cCI6MjA2NjIxMDExOX0.vOTrEVYX30FpWPQykY5CF1QCfkyG5gDLnI_2N9TATRE'
+  );
 
   // Navegação entre abas
-  const abas = document.querySelectorAll('nav button');
-  const sections = document.querySelectorAll('main section');
-  abas.forEach(botao => {
-    botao.addEventListener('click', () => {
-      abas.forEach(b => b.classList.remove('active'));
-      botao.classList.add('active');
-      const target = botao.getAttribute('data-target');
-      sections.forEach(sec => {
-        if(sec.id === target) sec.classList.add('active');
-        else sec.classList.remove('active');
+  const tabs = document.querySelectorAll('nav button');
+  const sections = document.querySelectorAll('section');
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const target = tab.dataset.tab;
+      sections.forEach(s => {
+        if (s.id === target) {
+          s.classList.add('active');
+        } else {
+          s.classList.remove('active');
+        }
       });
-      // Ao mudar aba, esconder cupom e botões se estiver em histórico
-      if(target !== 'historico') {
-        document.getElementById('detalhe-cupom').style.display = 'none';
-        document.getElementById('acoes-cupom').style.display = 'none';
-      }
     });
   });
 
-  // Funções para carregar listas
+  // Funções carregar dados
   async function carregarClientes() {
-    const { data, error } = await supabase.from('clientes').select().order('nome');
-    if (error) return alert('Erro ao carregar clientes: ' + error.message);
-    preencherSelectClientes(data);
-    preencherTabelaClientes(data);
-  }
-  async function carregarServicos() {
-    const { data, error } = await supabase.from('servicos').select().order('descricao');
-    if (error) return alert('Erro ao carregar serviços: ' + error.message);
-    preencherSelectServicos(data);
-    preencherTabelaServicos(data);
-  }
-  async function carregarOrcamentos() {
-    // Para mostrar na aba orcamentos, vamos buscar com join para nome cliente e descricao serviço
-    let { data, error } = await supabase.rpc('listar_orcamentos_completo');
-    if (error) return alert('Erro ao carregar orçamentos: ' + error.message);
-    preencherTabelaOrcamentos(data);
-  }
-  async function carregarHistorico() {
-    // Usar mesma RPC para histórico, pode ser a mesma tabela
-    let { data, error } = await supabase.rpc('listar_orcamentos_completo');
-    if (error) return alert('Erro ao carregar histórico: ' + error.message);
-    preencherHistorico(data);
-  }
-
-  // Preenche selects e tabelas
-  function preencherSelectClientes(clientes) {
+    const { data, error } = await supabase.from('clientes').select('*').order('nome');
+    if (error) { alert('Erro ao carregar clientes: ' + error.message); return; }
+    const lista = document.getElementById('lista-clientes');
     const select = document.getElementById('select-cliente');
-    select.innerHTML = '<option value="">Selecione um cliente</option>';
-    clientes.forEach(c => {
-      select.innerHTML += `<option value="${c.id}">${c.nome} (${c.carro || '-'})</option>`;
-    });
-  }
-  function preencherSelectServicos(servicos) {
-    const select = document.getElementById('select-servico');
-    select.innerHTML = '<option value="">Selecione um serviço</option>';
-    servicos.forEach(s => {
-      select.innerHTML += `<option value="${s.id}">${s.descricao} - R$ ${Number(s.valor).toFixed(2)}</option>`;
+    lista.innerHTML = '';
+    select.innerHTML = '<option value="" disabled selected>Selecione o cliente</option>';
+    data.forEach(c => {
+      lista.innerHTML += `
+        <li>
+          <div>${c.nome} ${c.carro ? '- ' + c.carro : ''} ${c.placa ? '('+c.placa+')' : ''}</div>
+          <button onclick="excluirCliente(${c.id})" aria-label="Excluir cliente ${c.nome}">❌</button>
+        </li>`;
+      select.innerHTML += `<option value="${c.id}">${c.nome}</option>`;
     });
   }
 
-  function preencherTabelaClientes(clientes) {
-    const tbody = document.getElementById('tbody-clientes');
-    tbody.innerHTML = '';
-    clientes.forEach(c => {
-      tbody.innerHTML += `
-      <tr>
-        <td>${c.nome}</td>
-        <td>${c.telefone}</td>
-        <td>${c.carro || '-'}</td>
-        <td>${c.placa || '-'}</td>
-        <td>
-          <button class="btn-acao" onclick="editarCliente(${c.id})">Editar</button>
-          <button class="btn-acao excluir" onclick="excluirCliente(${c.id})">Excluir</button>
-        </td>
-      </tr>
-      `;
+  async function carregarServicos() {
+    const { data, error } = await supabase.from('servicos').select('*').order('descricao');
+    if (error) { alert('Erro ao carregar serviços: ' + error.message); return; }
+    const lista = document.getElementById('lista-servicos');
+    const select = document.getElementById('select-servico');
+    lista.innerHTML = '';
+    select.innerHTML = '<option value="" disabled selected>Selecione o serviço</option>';
+    data.forEach(s => {
+      lista.innerHTML += `
+        <li>
+          <div>${s.descricao} - R$ ${s.valor.toFixed(2)}</div>
+          <button onclick="excluirServico(${s.id})" aria-label="Excluir serviço ${s.descricao}">❌</button>
+        </li>`;
+      select.innerHTML += `<option value="${s.id}">${s.descricao}</option>`;
     });
   }
-  function preencherTabelaServicos(servicos) {
-    const tbody = document.getElementById('tbody-servicos');
-    tbody.innerHTML = '';
-    servicos.forEach(s => {
-      tbody.innerHTML += `
-      <tr>
-        <td>${s.descricao}</td>
-        <td>R$ ${Number(s.valor).toFixed(2)}</td>
-        <td>
-          <button class="btn-acao" onclick="editarServico(${s.id})">Editar</button>
-          <button class="btn-acao excluir" onclick="excluirServico(${s.id})">Excluir</button>
-        </td>
-      </tr>
-      `;
-    });
-  }
-  function preencherTabelaOrcamentos(orcamentos) {
-    const tbody = document.getElementById('tbody-orcamentos');
-    tbody.innerHTML = '';
-    orcamentos.forEach(o => {
-      const total = (o.valor_servico * (1 - (o.desconto/100))).toFixed(2);
-      tbody.innerHTML += `
-      <tr>
-        <td>${o.nome_cliente}</td>
-        <td>${o.descricao}</td>
-        <td>${o.desconto.toFixed(2)}%</td>
-        <td>R$ ${total}</td>
-        <td>
-          <button class="btn-acao" onclick="editarOrcamento(${o.id})">Editar</button>
-          <button class="btn-acao excluir" onclick="excluirOrcamento(${o.id})">Excluir</button>
-        </td>
-      </tr>
-      `;
-    });
-  }
-  function preencherHistorico(orcamentos) {
-    const div = document.getElementById('lista-historico');
-    div.innerHTML = '';
-    orcamentos.forEach(o => {
-      const total = (o.valor_servico * (1 - (o.desconto/100))).toFixed(2);
-      const dataHora = new Date(o.created_at).toLocaleString('pt-BR');
-      const cupomTxt =
-`� Orçamento R.M. Estética Automotiva �
+
+  async function carregarOrcamentos() {
+    const { data, error } = await supabase.from('orcamentos').select(`
+      id, desconto, created_at,
+      clientes (id, nome, telefone, carro, placa),
+      servicos (id, descricao, valor)
+    `).order('created_at', { ascending: false });
+
+    if (error) {
+      alert('Erro ao carregar orçamentos: ' + error.message);
+      return;
+    }
+
+    const lista = document.getElementById('lista-orcamentos');
+    lista.innerHTML = '';
+    data.forEach(o => {
+      const total = o.servicos.valor * (1 - (o.desconto || 0) / 100);
+      const orcTexto =
+`🧾 Orçamento R.M. Estética Automotiva 🧾
 
 ==============================
        R.M. ESTÉTICA AUTOMOTIVA
 ==============================
-Data: ${dataHora}
-Cliente: ${o.nome_cliente}
-Carro: ${o.carro_cliente || '-'} (Placa: ${o.placa_cliente || '-'})
+Data: ${new Date(o.created_at).toLocaleString()}
+Cliente: ${o.clientes.nome}
+Carro: ${o.clientes.carro || '-'} (${o.clientes.placa || '-'})
 ------------------------------
 SERVIÇOS:
-- ${o.descricao}  R$ ${Number(o.valor_servico).toFixed(2)}
+- ${o.servicos.descricao}  R$ ${o.servicos.valor.toFixed(2)}
 ------------------------------
-Desconto: ${o.desconto.toFixed(2)}%
-Total: R$ ${total}
+Desconto: ${o.desconto || 0}%
+Total: R$ ${total.toFixed(2)}
 ------------------------------
 LOJA PARA CONTATO:
 Tel: 24 999486232
@@ -412,158 +353,127 @@ Rua 40, Travessa Recanto dos Pássaros
 ==============================
     Obrigado pela preferência!
 ==============================`;
-      const item = document.createElement('div');
-      item.style.borderBottom = '1px solid #444';
-      item.style.padding = '0.6rem 0';
-      item.style.cursor = 'pointer';
-      item.textContent = `#${o.id} - ${dataHora} - ${o.nome_cliente} - R$ ${total}`;
-      item.title = 'Clique para ver o cupom';
-      item.onclick = () => mostrarCupom(cupomTxt);
-      div.appendChild(item);
+
+      lista.innerHTML += `
+        <li>
+          <div>
+            <strong>${o.clientes.nome}</strong> — ${o.servicos.descricao}<br/>
+            R$ ${total.toFixed(2)} • ${new Date(o.created_at).toLocaleString()}
+          </div>
+          <button onclick='mostrarOrcamento(\`${orcTexto.replace(/`/g, "\\`")}\')' aria-label="Visualizar orçamento">👁️</button>
+        </li>`;
     });
   }
 
-  // Mostrar cupom na aba histórico
-  function mostrarCupom(texto) {
-    const cupomDiv = document.getElementById('detalhe-cupom');
-    const botoesDiv = document.getElementById('acoes-cupom');
-    cupomDiv.style.display = 'block';
-    botoesDiv.style.display = 'flex';
-    cupomDiv.textContent = texto;
-
-    // Salvar PDF
-    document.getElementById('btn-salvar-pdf').onclick = () => {
-      const doc = new jsPDF();
-      const splitText = doc.splitTextToSize(texto, 180);
-      doc.text(splitText, 10, 10);
-      doc.save('orcamento_rm_estetica.pdf');
-    };
-
-    // Enviar WhatsApp
-    document.getElementById('btn-enviar-whatsapp').onclick = () => {
-      const textoWhats = encodeURIComponent(texto);
-      window.open(`https://wa.me/5524999486232?text=${textoWhats}`, '_blank');
-    };
+  function mostrarOrcamento(texto) {
+    document.getElementById('orcamento-box').textContent = texto;
   }
 
-  // CRUD clientes
-  document.getElementById('form-cliente').addEventListener('submit', async e => {
+  // Botões salvar/enviar
+  function salvarTextoComoArquivo(texto, nomeArquivo) {
+    const blob = new Blob([texto], {type: 'text/plain'});
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = nomeArquivo;
+    link.click();
+  }
+
+  document.getElementById('btnSalvarOrcamento').addEventListener('click', () => {
+    const texto = document.getElementById('orcamento-box').textContent;
+    if(!texto) return alert('Visualize um orçamento antes de salvar!');
+    salvarTextoComoArquivo(texto, 'orcamento.txt');
+  });
+
+  document.getElementById('btnEnviarOrcamento').addEventListener('click', () => {
+    const texto = document.getElementById('orcamento-box').textContent;
+    if(!texto) return alert('Visualize um orçamento antes de enviar!');
+    const url = `https://wa.me/?text=${encodeURIComponent(texto)}`;
+    window.open(url, '_blank');
+  });
+
+  document.getElementById('btnSalvarCupom').addEventListener('click', () => {
+    const texto = document.getElementById('orcamento-box').textContent;
+    if(!texto) return alert('Visualize um cupom antes de salvar!');
+    salvarTextoComoArquivo(texto, 'cupom.txt');
+  });
+
+  document.getElementById('btnEnviarCupom').addEventListener('click', () => {
+    const texto = document.getElementById('orcamento-box').textContent;
+    if(!texto) return alert('Visualize um cupom antes de enviar!');
+    const url = `https://wa.me/?text=${encodeURIComponent(texto)}`;
+    window.open(url, '_blank');
+  });
+
+  // Excluir clientes/servicos
+  async function excluirCliente(id) {
+    if(!confirm('Confirma exclusão do cliente?')) return;
+    const { error } = await supabase.from('clientes').delete().eq('id', id);
+    if(error) alert('Erro ao excluir: ' + error.message);
+    else carregarClientes();
+  }
+  async function excluirServico(id) {
+    if(!confirm('Confirma exclusão do serviço?')) return;
+    const { error } = await supabase.from('servicos').delete().eq('id', id);
+    if(error) alert('Erro ao excluir: ' + error.message);
+    else carregarServicos();
+  }
+
+  // Form submissions
+  document.getElementById('form-clientes').addEventListener('submit', async e => {
     e.preventDefault();
-    const nome = document.getElementById('nome-cliente').value.trim();
-    const telefone = document.getElementById('telefone-cliente').value.trim();
-    const carro = document.getElementById('carro-cliente').value.trim();
-    const placa = document.getElementById('placa-cliente').value.trim();
+    const nome = e.target.nome.value.trim();
+    const telefone = e.target.telefone.value.trim();
+    const carro = e.target.carro.value.trim();
+    const placa = e.target.placa.value.trim();
 
-    if(!nome || !telefone) {
-      alert('Nome e telefone são obrigatórios.');
-      return;
-    }
-
+    if(!nome) return alert('Nome é obrigatório');
     const { error } = await supabase.from('clientes').insert([{ nome, telefone, carro, placa }]);
     if(error) return alert('Erro ao salvar cliente: ' + error.message);
 
-    alert('Cliente salvo com sucesso!');
     e.target.reset();
     carregarClientes();
   });
 
-  async function excluirCliente(id) {
-    if(!confirm('Confirma exclusão do cliente?')) return;
-    const { error } = await supabase.from('clientes').delete().eq('id', id);
-    if(error) return alert('Erro ao excluir cliente: ' + error.message);
-    carregarClientes();
-  }
-  function editarCliente(id) {
-    alert('Editar cliente ainda não implementado.');
-  }
-
-  // CRUD serviços
-  document.getElementById('form-servico').addEventListener('submit', async e => {
+  document.getElementById('form-servicos').addEventListener('submit', async e => {
     e.preventDefault();
-    const descricao = document.getElementById('descricao-servico').value.trim();
-    const valor = parseFloat(document.getElementById('valor-servico').value);
+    const descricao = e.target.descricao.value.trim();
+    const valor = parseFloat(e.target.valor.value);
 
-    if(!descricao || isNaN(valor) || valor < 0) {
-      alert('Descrição e valor válido são obrigatórios.');
-      return;
-    }
+    if(!descricao) return alert('Descrição é obrigatória');
+    if(isNaN(valor) || valor <= 0) return alert('Valor deve ser maior que zero');
 
     const { error } = await supabase.from('servicos').insert([{ descricao, valor }]);
     if(error) return alert('Erro ao salvar serviço: ' + error.message);
 
-    alert('Serviço salvo com sucesso!');
     e.target.reset();
     carregarServicos();
   });
-  async function excluirServico(id) {
-    if(!confirm('Confirma exclusão do serviço?')) return;
-    const { error } = await supabase.from('servicos').delete().eq('id', id);
-    if(error) return alert('Erro ao excluir serviço: ' + error.message);
-    carregarServicos();
-  }
-  function editarServico(id) {
-    alert('Editar serviço ainda não implementado.');
-  }
 
-  // CRUD orçamentos
   document.getElementById('form-orcamento').addEventListener('submit', async e => {
     e.preventDefault();
-    const clienteId = document.getElementById('select-cliente').value;
-    const servicoId = document.getElementById('select-servico').value;
-    let desconto = parseFloat(document.getElementById('desconto').value);
-    if (isNaN(desconto)) desconto = 0;
 
-    if(!clienteId || !servicoId) {
-      alert('Selecione cliente e serviço.');
-      return;
-    }
+    const clienteId = parseInt(e.target['select-cliente'].value);
+    const servicoId = parseInt(e.target['select-servico'].value);
+    const desconto = parseFloat(e.target['desconto'].value) || 0;
 
-    // Buscando dados para salvar no orçamento (carro, placa, valores, nomes)
-    const { data: cliente } = await supabase.from('clientes').select().eq('id', clienteId).single();
-    const { data: servico } = await supabase.from('servicos').select().eq('id', servicoId).single();
-    if(!cliente || !servico) {
-      alert('Cliente ou serviço inválido.');
-      return;
-    }
+    if(!clienteId || !servicoId) return alert('Selecione cliente e serviço');
 
-    const novoOrcamento = {
-      cliente_id: clienteId,
-      servico_id: servicoId,
-      desconto,
-      valor_servico: servico.valor,
-      nome_cliente: cliente.nome,
-      carro_cliente: cliente.carro,
-      placa_cliente: cliente.placa,
-      descricao: servico.descricao,
-      created_at: new Date().toISOString()
-    };
-
-    const { error } = await supabase.from('orcamentos').insert([novoOrcamento]);
+    const { error } = await supabase.from('orcamentos').insert([{ cliente_id: clienteId, servico_id: servicoId, desconto }]);
     if(error) return alert('Erro ao salvar orçamento: ' + error.message);
 
-    alert('Orçamento salvo com sucesso!');
     e.target.reset();
     carregarOrcamentos();
-    carregarHistorico();
+    alert('Orçamento salvo com sucesso!');
   });
-  async function excluirOrcamento(id) {
-    if(!confirm('Confirma exclusão do orçamento?')) return;
-    const { error } = await supabase.from('orcamentos').delete().eq('id', id);
-    if(error) return alert('Erro ao excluir orçamento: ' + error.message);
-    carregarOrcamentos();
-    carregarHistorico();
-  }
-  function editarOrcamento(id) {
-    alert('Editar orçamento ainda não implementado.');
+
+  // Inicializar tudo ao carregar a página
+  async function inicializar() {
+    await carregarClientes();
+    await carregarServicos();
+    await carregarOrcamentos();
   }
 
-  // Inicializa tudo ao carregar página
-  window.onload = () => {
-    carregarClientes();
-    carregarServicos();
-    carregarOrcamentos();
-    carregarHistorico();
-  }
+  inicializar();
 </script>
 
 </body>
