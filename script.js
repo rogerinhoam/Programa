@@ -8,10 +8,19 @@ const supabase = createClient(
 window.cadastrarCliente = async () => {
   const nome = document.getElementById('nome').value;
   const telefone = document.getElementById('telefone').value;
+
   if (!nome || !telefone) return alert("Preencha todos os campos!");
-  await supabase.from('clientes').insert({ nome, telefone });
-  alert('Cliente salvo!');
-  carregarClientes();
+
+  const { error } = await supabase.from('clientes').insert({ nome, telefone });
+
+  if (error) {
+    alert("Erro ao salvar cliente: " + error.message);
+    console.error("Erro ao salvar:", error);
+  } else {
+    alert('Cliente salvo com sucesso!');
+    carregarClientes();
+  }
+
 };
 
 window.cadastrarServico = async () => {
