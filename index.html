@@ -35,6 +35,10 @@
     border: 3px solid #1f1f1f;
   }
 </style>
+
+<!-- jsPDF para salvar PDF -->
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
 <script type="module">
   import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
@@ -91,8 +95,8 @@
         <span class="text-amareloSuave font-semibold">${cli.nome}</span>
         <span class="text-cinzaClaro">${cli.telefone}</span>
         <div class="space-x-2">
-          <button onclick="editarCliente(${cli.id})" class="bg-amareloSuave text-[#121212] px-3 py-1 rounded hover:bg-yellow-400">Editar</button>
-          <button onclick="excluirCliente(${cli.id})" class="bg-red-700 px-3 py-1 rounded hover:bg-red-800 text-white">Excluir</button>
+          <button onclick="editarCliente(${cli.id})" class="bg-amareloSuave text-[#121212] px-3 py-1 rounded hover:bg-yellow-400 transition">Editar</button>
+          <button onclick="excluirCliente(${cli.id})" class="bg-red-700 px-3 py-1 rounded hover:bg-red-800 text-white transition">Excluir</button>
         </div>
       `;
       container.appendChild(div);
@@ -163,8 +167,8 @@
         <span class="text-amareloSuave font-semibold">${serv.descricao}</span>
         <span class="text-cinzaClaro">R$ ${serv.valor.toFixed(2)}</span>
         <div class="space-x-2">
-          <button onclick="editarServico(${serv.id})" class="bg-amareloSuave text-[#121212] px-3 py-1 rounded hover:bg-yellow-400">Editar</button>
-          <button onclick="excluirServico(${serv.id})" class="bg-red-700 px-3 py-1 rounded hover:bg-red-800 text-white">Excluir</button>
+          <button onclick="editarServico(${serv.id})" class="bg-amareloSuave text-[#121212] px-3 py-1 rounded hover:bg-yellow-400 transition">Editar</button>
+          <button onclick="excluirServico(${serv.id})" class="bg-red-700 px-3 py-1 rounded hover:bg-red-800 text-white transition">Excluir</button>
         </div>
       `;
       container.appendChild(div);
@@ -250,10 +254,10 @@
           <span class="text-cinzaClaro block">${orc.servicos.descricao} - R$${orc.servicos.valor.toFixed(2)}</span>
           <span class="text-cinzaClaro block">Pagamento: ${orc.forma_pagamento}</span>
         </div>
-        <div class="space-x-2">
-          <button onclick="editarOrcamento(${orc.id})" class="bg-amareloSuave text-[#121212] px-3 py-1 rounded hover:bg-yellow-400 mb-1 md:mb-0">Editar</button>
-          <button onclick="excluirOrcamento(${orc.id})" class="bg-red-700 px-3 py-1 rounded hover:bg-red-800 text-white mb-1 md:mb-0">Excluir</button>
-          <button onclick="gerarCupom(${orc.id})" class="bg-vermelhoSuave px-3 py-1 rounded hover:bg-red-600 text-white">Gerar Cupom</button>
+        <div class="space-x-2 flex flex-wrap">
+          <button onclick="editarOrcamento(${orc.id})" class="bg-amareloSuave text-[#121212] px-3 py-1 rounded hover:bg-yellow-400 transition mb-1 md:mb-0">Editar</button>
+          <button onclick="excluirOrcamento(${orc.id})" class="bg-red-700 px-3 py-1 rounded hover:bg-red-800 text-white transition mb-1 md:mb-0">Excluir</button>
+          <button onclick="gerarCupom(${orc.id})" class="bg-vermelhoSuave px-3 py-1 rounded hover:bg-red-600 text-white transition mb-1 md:mb-0">Gerar Cupom</button>
         </div>
       `;
       container.appendChild(div);
@@ -302,6 +306,30 @@ Pagamento: ${data.forma_pagamento}
     document.getElementById('cupom').textContent = texto;
   }
 
+  // --- Botões PDF e WhatsApp ---
+  document.addEventListener('DOMContentLoaded', () => {
+    const { jsPDF } = window.jspdf;
+
+    document.getElementById('btnPdf').addEventListener('click', () => {
+      const texto = document.getElementById('cupom').textContent;
+      if (!texto.trim()) return alert('Gere um cupom antes de salvar em PDF.');
+
+      const doc = new jsPDF();
+      const splitText = doc.splitTextToSize(texto, 180);
+      doc.setFontSize(12);
+      doc.text(splitText, 10, 10);
+      doc.save('cupom-rm-estetica.pdf');
+    });
+
+    document.getElementById('btnWhats').addEventListener('click', () => {
+      const texto = document.getElementById('cupom').textContent;
+      if (!texto.trim()) return alert('Gere um cupom antes de enviar pelo WhatsApp.');
+      const encodedText = encodeURIComponent(texto);
+      const url = `https://wa.me/?text=${encodedText}`;
+      window.open(url, '_blank');
+    });
+  });
+
   // --- Navegação abas ---
   function mostrarAba(nome) {
     document.querySelectorAll('.aba').forEach((aba) => {
@@ -318,24 +346,25 @@ Pagamento: ${data.forma_pagamento}
   window.excluirOrcamento = excluirOrcamento;
   window.gerarCupom = gerarCupom;
 </script>
+
 </head>
 <body class="bg-fundoEscuro text-cinzaClaro min-h-screen flex flex-col">
-  <header class="bg-[#1f1f1f] p-4 shadow-lg flex justify-center space-x-8 fixed top-0 left-0 right-0 z-50">
-    <button onclick="mostrarAba('clientes')" class="text-amareloSuave font-semibold hover:text-yellow-400 focus:outline-none">👤 Clientes</button>
-    <button onclick="mostrarAba('servicos')" class="text-amareloSuave font-semibold hover:text-yellow-400 focus:outline-none">🛠 Serviços</button>
-    <button onclick="mostrarAba('orcamentos')" class="text-amareloSuave font-semibold hover:text-yellow-400 focus:outline-none">📋 Orçamentos</button>
+  <header class="bg-[#1f1f1f] p-4 shadow-md flex justify-center space-x-4 text-xl font-bold text-amareloSuave">
+    <button onclick="mostrarAba('clientes')" class="hover:text-vermelhoSuave transition px-3 py-1 rounded focus:outline-none focus:ring-2 focus:ring-amareloSuave">Clientes</button>
+    <button onclick="mostrarAba('servicos')" class="hover:text-vermelhoSuave transition px-3 py-1 rounded focus:outline-none focus:ring-2 focus:ring-amareloSuave">Serviços</button>
+    <button onclick="mostrarAba('orcamentos')" class="hover:text-vermelhoSuave transition px-3 py-1 rounded focus:outline-none focus:ring-2 focus:ring-amareloSuave">Orçamentos</button>
   </header>
-  <main class="flex-grow pt-20 max-w-4xl mx-auto p-6">
+
+  <main class="flex-grow p-6">
     <!-- Clientes -->
     <section id="clientes" class="aba">
-      <h1 class="text-3xl font-bold mb-6 text-vermelhoSuave text-center">R.M. Estética Automotiva</h1>
       <h2 class="text-xl font-semibold mb-4 text-amareloSuave">Clientes</h2>
       <form id="formCliente" class="space-y-4 max-w-lg mx-auto bg-[#121212] p-6 rounded shadow-lg">
         <input type="hidden" id="clienteId" />
         <label class="block text-amareloSuave font-semibold mb-1" for="nome">Nome</label>
         <input type="text" id="nome" placeholder="Nome do cliente" class="w-full p-3 rounded bg-[#1f1f1f] border border-vermelhoSuave text-cinzaClaro focus:outline-none focus:ring-2 focus:ring-amareloSuave" required />
         <label class="block text-amareloSuave font-semibold mb-1" for="telefone">Telefone</label>
-        <input type="tel" id="telefone" placeholder="(99) 99999-9999" class="w-full p-3 rounded bg-[#1f1f1f] border border-vermelhoSuave text-cinzaClaro focus:outline-none focus:ring-2 focus:ring-amareloSuave" required />
+        <input type="text" id="telefone" placeholder="(00) 00000-0000" class="w-full p-3 rounded bg-[#1f1f1f] border border-vermelhoSuave text-cinzaClaro focus:outline-none focus:ring-2 focus:ring-amareloSuave" required />
         <button type="submit" class="w-full bg-vermelhoSuave text-white p-3 rounded hover:bg-red-600 transition">Salvar Cliente</button>
       </form>
       <div id="listaClientes" class="mt-8 max-w-lg mx-auto"></div>
@@ -387,6 +416,15 @@ Pagamento: ${data.forma_pagamento}
       <div id="listaOrcamentos" class="mt-8 max-w-lg mx-auto"></div>
 
       <pre id="cupom" class="mt-8 p-4 bg-[#1f1f1f] border border-vermelhoSuave rounded font-mono text-amareloSuave whitespace-pre-wrap"></pre>
+
+      <div class="flex justify-center space-x-4 mt-4">
+        <button id="btnPdf" class="bg-amareloSuave text-[#121212] px-5 py-2 rounded shadow hover:bg-yellow-400 transition">
+          💾 Salvar PDF
+        </button>
+        <button id="btnWhats" class="bg-vermelhoSuave text-white px-5 py-2 rounded shadow hover:bg-red-600 transition">
+          📲 Enviar WhatsApp
+        </button>
+      </div>
     </section>
   </main>
   <footer class="text-center p-4 text-cinzaClaro bg-[#1f1f1f]">
