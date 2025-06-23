@@ -1,82 +1,151 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>R.M. Estética Automotiva - Gestão Completa</title>
-  <link rel="stylesheet" href="style.css" />
-  <script type="module" src="script.js" defer></script>
-</head>
-<body>
-  <header>
-    <h1>R.M. Estética Automotiva</h1>
-    <nav>
-      <button onclick="mostrarAba('clientes')">Clientes</button>
-      <button onclick="mostrarAba('servicos')">Serviços</button>
-      <button onclick="mostrarAba('orcamentos')">Orçamentos</button>
-    </nav>
-  </header>
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-  <main>
-    <section id="clientes" class="aba">
-      <h2>Clientes</h2>
+const supabase = createClient(
+  'https://zkdfimbfwgofkmmcvyfu.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InprZGZpbWJmd2dvZmttbWN2eWZ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA2MzQxMTksImV4cCI6MjA2NjIxMDExOX0.vOTrEVYX30FpWPQykY5CF1QCfkyG5gDLnI_2N9TATRE'
+);
 
-      <div id="listaClientes" class="lista"></div>
+// --- Clientes ---
 
-      <form id="formCliente" onsubmit="return false;">
-        <input type="hidden" id="clienteId" />
-        <input type="text" id="nome" placeholder="Nome do cliente" required />
-        <input type="text" id="telefone" placeholder="Telefone" required />
-        <button onclick="salvarCliente()">Salvar Cliente</button>
-        <button type="button" onclick="limparFormCliente()">Cancelar</button>
-      </form>
-    </section>
+async function listarClientes() {
+  const div = document.getElementById('listaClientes');
+  div.innerHTML = 'Carregando clientes...';
+  const { data, error } = await supabase.from('clientes').select().order('nome');
+  if (error) {
+    div.innerHTML = `Erro: ${error.message}`;
+    return;
+  }
+  if (!data.length) {
+    div.innerHTML = 'Nenhum cliente cadastrado.';
+    return;
+  }
+  div.innerHTML = '';
+  data.forEach(cliente => {
+    const el = document.createElement('div');
+    el.className = 'entrada-lista';
+    el.innerHTML = `
+      <div class="entrada-texto">${cliente.nome} - ${cliente.telefone}</div>
+      <button class="btn-editar" onclick="editarCliente('${cliente.id}', '${cliente.nome}', '${cliente.telefone}')">Editar</button>
+      <button class="btn-excluir" onclick="excluirCliente('${cliente.id}')">Excluir</button>
+    `;
+    div.appendChild(el);
+  });
+}
 
-    <section id="servicos" class="aba" style="display:none">
-      <h2>Serviços</h2>
+window.salvarCliente = async () => {
+  const id = document.getElementById('clienteId').value;
+  const nome = document.getElementById('nome').value.trim();
+  const telefone = document.getElementById('telefone').value.trim();
 
-      <div id="listaServicos" class="lista"></div>
+  if (!nome || !telefone) {
+    alert('Preencha todos os campos!');
+    return;
+  }
 
-      <form id="formServico" onsubmit="return false;">
-        <input type="hidden" id="servicoId" />
-        <input type="text" id="descricao" placeholder="Descrição do serviço" required />
-        <input type="number" id="valor" step="0.01" placeholder="Valor R$" required />
-        <button onclick="salvarServico()">Salvar Serviço</button>
-        <button type="button" onclick="limparFormServico()">Cancelar</button>
-      </form>
-    </section>
-
-    <section id="orcamentos" class="aba" style="display:none">
-      <h2>Gerar Orçamento</h2>
-
-      <label for="clienteSelect">Cliente:</label>
-      <select id="clienteSelect" required></select>
-
-      <label for="servicoSelect">Serviço:</label>
-      <select id="servicoSelect" required></select>
-
-      <label for="formaPagamento">Forma de Pagamento:</label>
-      <select id="formaPagamento" required>
-        <option value="Dinheiro">Dinheiro</option>
-        <option value="Cartão">Cartão</option>
-        <option value="Pix">Pix</option>
-      </select>
-
-      <button onclick="gerarOrcamento()">Gerar Orçamento</button>
-
-      <pre id="cupom" class="cupom"></pre>
-
-      <h3>Histórico de Orçamentos</h3>
-      <div id="listaOrcamentos" class="lista"></div>
-    </section>
-  </main>
-
-  <script>
-    function mostrarAba(nome) {
-      document.querySelectorAll('.aba').forEach(sec => {
-        sec.style.display = sec.id === nome ? 'block' : 'none';
-      });
+  if (id) {
+    const { error } = await supabase.from('clientes').update({ nome, telefone }).eq('id', id);
+    if (error) {
+      alert('Erro ao atualizar cliente: ' + error.message);
+      return;
     }
-  </script>
-</body>
-</html>
+    alert('Cliente atualizado!');
+  } else {
+    const { error } = await supabase.from('clientes').insert({ nome, telefone });
+    if (error) {
+      alert('Erro ao salvar cliente: ' + error.message);
+      return;
+    }
+    alert('Cliente salvo!');
+  }
+
+  limparFormCliente();
+  listarClientes();
+  carregarClientesNoOrcamento();
+};
+
+window.editarCliente = (id, nome, telefone) => {
+  document.getElementById('clienteId').value = id;
+  document.getElementById('nome').value = nome;
+  document.getElementById('telefone').value = telefone;
+};
+
+window.excluirCliente = async (id) => {
+  if (!confirm('Quer mesmo excluir este cliente?')) return;
+  const { error } = await supabase.from('clientes').delete().eq('id', id);
+  if (error) {
+    alert('Erro ao excluir cliente: ' + error.message);
+    return;
+  }
+  alert('Cliente excluído!');
+  listarClientes();
+  carregarClientesNoOrcamento();
+};
+
+// --- Serviços ---
+
+async function listarServicos() {
+  const div = document.getElementById('listaServicos');
+  div.innerHTML = 'Carregando serviços...';
+  const { data, error } = await supabase.from('servicos').select().order('descricao');
+  if (error) {
+    div.innerHTML = `Erro: ${error.message}`;
+    return;
+  }
+  if (!data.length) {
+    div.innerHTML = 'Nenhum serviço cadastrado.';
+    return;
+  }
+  div.innerHTML = '';
+  data.forEach(servico => {
+    const el = document.createElement('div');
+    el.className = 'entrada-lista';
+    el.innerHTML = `
+      <div class="entrada-texto">${servico.descricao} - R$ ${servico.valor.toFixed(2)}</div>
+      <button class="btn-editar" onclick="editarServico('${servico.id}', '${servico.descricao}', ${servico.valor})">Editar</button>
+      <button class="btn-excluir" onclick="excluirServico('${servico.id}')">Excluir</button>
+    `;
+    div.appendChild(el);
+  });
+}
+
+window.salvarServico = async () => {
+  const id = document.getElementById('servicoId').value;
+  const descricao = document.getElementById('descricao').value.trim();
+  const valor = parseFloat(document.getElementById('valor').value);
+
+  if (!descricao || isNaN(valor)) {
+    alert('Preencha todos os campos corretamente!');
+    return;
+  }
+
+  if (id) {
+    const { error } = await supabase.from('servicos').update({ descricao, valor }).eq('id', id);
+    if (error) {
+      alert('Erro ao atualizar serviço: ' + error.message);
+      return;
+    }
+    alert('Serviço atualizado!');
+  } else {
+    const { error } = await supabase.from('servicos').insert({ descricao, valor });
+    if (error) {
+      alert('Erro ao salvar serviço: ' + error.message);
+      return;
+    }
+    alert('Serviço salvo!');
+  }
+
+  limparFormServico();
+  listarServicos();
+  carregarServicosNoOrcamento();
+};
+
+window.editarServico = (id, descricao, valor) => {
+  document.getElementById('servicoId').value = id;
+  document.getElementById('descricao').value = descricao;
+  document.getElementById('valor').value = valor;
+};
+
+window.excluirServico = async (id) => {
+  if (!confirm('Quer mesmo excluir este serviço?')) return;
+  const { error } = await supabase.from('servicos').delete().eq('id', id);
+  if (error) {
