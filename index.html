@@ -66,6 +66,10 @@
       .status-Em-Andamento { background-color: #337ab7; }
       .status-Finalizado { background-color: #5cb85c; }
       .status-Cancelado { background-color: #d9534f; }
+      #orcamento-servicos-adicionados { margin-top: 20px; }
+      #orcamento-servicos-lista { border: 1px solid var(--border-color); border-radius: 8px; margin-top: 10px; padding: 0; }
+      #orcamento-servicos-lista li { background: var(--bg-tertiary); }
+      #orcamento-total { text-align: right; font-size: 1.2rem; font-weight: bold; margin: 20px 0; }
       .hidden { display: none; }
       .toast { padding: 15px 20px; border-radius: 8px; color: white; font-weight: 600; box-shadow: 0 4px 10px rgba(0,0,0,0.3); background-color: #333; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 3000; }
       @media (max-width: 768px) { main { padding: 15px 10px; } nav button { padding: 10px 12px; } #sync-button { margin-left: 0; } .btn-group { grid-template-columns: 1fr; } }
@@ -203,26 +207,15 @@
                 supabase.from('orcamentos').select(`*, clientes(*), orcamento_itens(*, servicos(*))`).order('created_at', { ascending: false })
             ]);
 
+            state.clientes = clientesRes.status === 'fulfilled' ? clientesRes.value.data || [] : [];
+            state.servicos = servicosRes.status === 'fulfilled' ? servicosRes.value.data || [] : [];
+            state.orcamentos = orcamentosRes.status === 'fulfilled' ? orcamentosRes.value.data || [] : [];
+            
             if (clientesRes.status === 'rejected') throw clientesRes.reason;
             if (servicosRes.status === 'rejected') throw servicosRes.reason;
             if (orcamentosRes.status === 'rejected') throw orcamentosRes.reason;
             
-            // CORREÇÃO DE SEGURANÇA: Garante que os dados sejam arrays vazios se a resposta for nula.
-            state.clientes = clientesRes.value.data || [];
-            state.servicos = servicosRes.value.data || [];
-            state.orcamentos = orcamentosRes.value.data || [];
-
-            document.getElementById('lista-clientes').innerHTML = state.clientes.map(c => `<li data-id="${c.id}"><div class="item-info">${c.nome}</div><div class="item-actions"><button title="Editar" data-action="edit" data-type="cliente">${icons.edit}</button><button title="Excluir" data-action="delete" data-type="cliente">${icons.delete}</button></div></li>`).join('') || `<li>Nenhum cliente.</li>`;
-            document.getElementById('lista-servicos').innerHTML = state.servicos.map(s => `<li data-id="${s.id}"><div class="item-info">${s.descricao} - R$ ${s.valor}</div><div class="item-actions"><button title="Editar" data-action="edit" data-type="servico">${icons.edit}</button><button title="Excluir" data-action="delete" data-type="servico">${icons.delete}</button></div></li>`).join('') || `<li>Nenhum serviço.</li>`;
-            document.getElementById('lista-historico').innerHTML = state.orcamentos.map(o => {
-                const statusClass = `status-${o.status.replace(/\s+/g, '-')}`;
-                return o.clientes ? `<li data-id="${o.id}"><div class="item-info"><strong>${o.clientes.nome}</strong> - R$ ${o.valor_total.toFixed(2)}</div><span class="status-badge ${statusClass}">${o.status}</span></li>` : ''
-            }).join('') || `<li>Nenhum orçamento.</li>`;
-            
-            const selCliente = document.getElementById('orcamento-cliente');
-            const selServico = document.getElementById('servico-para-adicionar');
-            selCliente.innerHTML = '<option value="">Selecione um cliente</option>' + state.clientes.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
-            selServico.innerHTML = '<option value="">Selecione um serviço</option>' + state.servicos.map(s => `<option value="${s.id}" data-valor="${s.valor}">${s.descricao}</option>`).join('');
+            renderLists();
 
         } catch (error) {
             showToast(`Erro ao carregar dados: ${error.message}`, 'error');
@@ -231,6 +224,20 @@
             syncButton.classList.remove('syncing');
             syncButton.disabled = false;
         }
+    }
+
+    function renderLists() {
+        document.getElementById('lista-clientes').innerHTML = state.clientes.map(c => `<li data-id="${c.id}"><div class="item-info">${c.nome}</div><div class="item-actions"><button title="Editar" data-action="edit" data-type="cliente">${icons.edit}</button><button title="Excluir" data-action="delete" data-type="cliente">${icons.delete}</button></div></li>`).join('') || `<li style="justify-content:center;">Nenhum cliente.</li>`;
+        document.getElementById('lista-servicos').innerHTML = state.servicos.map(s => `<li data-id="${s.id}"><div class="item-info">${s.descricao} - R$ ${s.valor}</div><div class="item-actions"><button title="Editar" data-action="edit" data-type="servico">${icons.edit}</button><button title="Excluir" data-action="delete" data-type="servico">${icons.delete}</button></div></li>`).join('') || `<li style="justify-content:center;">Nenhum serviço.</li>`;
+        document.getElementById('lista-historico').innerHTML = state.orcamentos.map(o => {
+            const statusClass = `status-${o.status.replace(/\s+/g, '-')}`;
+            return o.clientes ? `<li data-id="${o.id}"><div class="item-info"><strong>${o.clientes.nome}</strong> - R$ ${o.valor_total.toFixed(2)}</div><span class="status-badge ${statusClass}">${o.status}</span></li>` : ''
+        }).join('') || `<li style="justify-content:center;">Nenhum orçamento.</li>`;
+        
+        const selCliente = document.getElementById('orcamento-cliente');
+        const selServico = document.getElementById('servico-para-adicionar');
+        selCliente.innerHTML = '<option value="">Selecione...</option>' + state.clientes.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
+        selServico.innerHTML = '<option value="">Selecione...</option>' + state.servicos.map(s => `<option value="${s.id}" data-valor="${s.valor}">${s.descricao}</option>`).join('');
     }
 
     function renderServicosNoOrcamento() {
@@ -260,11 +267,13 @@
         const id = idField?.value;
         const formData = new FormData(form);
         const data = Object.fromEntries(formData.entries());
-        if(idField) delete data[idField.name];
+        if(idField) delete data.id;
 
         const query = id ? supabase.from(tableName).update(data).eq('id', id) : supabase.from(tableName).insert(data);
         const { error } = await query;
-
+        
+        button.disabled = false;
+        button.textContent = originalText;
         if (error) {
             showToast(`Erro: ${error.message}`, 'error');
         } else {
@@ -273,8 +282,6 @@
             if (idField) idField.value = '';
             await loadAllData();
         }
-        button.disabled = false;
-        button.textContent = originalText;
     }
 
     async function handleOrcamentoSubmit(e) {
@@ -325,7 +332,8 @@
         const { error: itensError } = await supabase.from('orcamento_itens').insert(itensParaInserir);
 
         if (itensError) {
-            showToast(`Erro ao salvar itens do orçamento: ${itensError.message}`, 'error');
+            showToast(`Erro ao salvar itens: ${itensError.message}`, 'error');
+            await supabase.from('orcamentos').delete().eq('id', orcamento.id); // Rollback
         } else {
             showToast('Orçamento salvo com sucesso!', 'success');
             form.reset();
@@ -337,10 +345,145 @@
         button.disabled = false; button.textContent = originalText;
     }
     
-    function renderHistoricoDetails() { /* ... implementação da versão anterior mantida ... */ }
+    function renderHistoricoDetails() {
+        const orc = state.orcamentoAtual;
+        const detailsDiv = document.getElementById('historico-details');
+        if(!orc || !orc.clientes || !orc.orcamento_itens) {
+            detailsDiv.classList.add('hidden');
+            return;
+        }
+        
+        const servicosListados = orc.orcamento_itens.map(item => `- ${item.descricao_servico} (R$ ${item.valor_cobrado.toFixed(2)})`).join('\n');
+        const subTotal = orc.orcamento_itens.reduce((acc, item) => acc + item.valor_cobrado, 0);
+
+        const textoOrcamento = `
+Orçamento R.M. Estética Automotiva
+==================================
+Data: ${new Date(orc.created_at).toLocaleString('pt-BR')}
+Cliente: ${orc.clientes.nome}
+Telefone: ${orc.clientes.telefone || '-'}
+----------------------------------
+SERVIÇOS:
+${servicosListados}
+----------------------------------
+Subtotal: ............ R$ ${subTotal.toFixed(2)}
+Desconto Aplicado: ... ${orc.desconto}%
+VALOR TOTAL: ......... R$ ${orc.valor_total.toFixed(2)}
+----------------------------------
+Formas de Pagamento Aceitas:
+${orc.formas_pagamento || 'Não especificado'}
+==================================`;
+        
+        document.getElementById('historico-texto').textContent = textoOrcamento;
+        detailsDiv.classList.remove('hidden');
+
+        // Lógica dos botões de ação
+        document.getElementById('btn-gerar-orcamento-pdf').onclick = () => new jsPDF().text(textoOrcamento, 10, 10).save('orcamento.pdf');
+        document.getElementById('btn-enviar-orcamento-whatsapp').onclick = () => window.open(`https://wa.me/?text=${encodeURIComponent(textoOrcamento)}`);
+        document.getElementById('btn-delete-orcamento').onclick = () => handleDelete(orc.id, 'orcamento');
+
+        const statusControls = document.getElementById('status-controls');
+        statusControls.innerHTML = '';
+        const statusActions = {
+            'Orçamento': 'Aprovar',
+            'Aprovado': 'Iniciar Serviço',
+            'Em Andamento': 'Finalizar Serviço'
+        };
+        if(statusActions[orc.status]) {
+            const btn = document.createElement('button');
+            btn.className = 'btn-primary';
+            btn.textContent = statusActions[orc.status];
+            btn.onclick = () => updateStatus(orc.id, Object.keys(statusActions)[Object.values(statusActions).indexOf(statusActions[orc.status]) + 1] || 'Finalizado');
+            statusControls.appendChild(btn);
+        }
+    }
+
+    async function updateStatus(id, newStatus) {
+        const { error } = await supabase.from('orcamentos').update({ status: newStatus }).eq('id', id);
+        if(error) { showToast(`Erro ao atualizar status: ${error.message}`, 'error'); }
+        else { showToast(`Status atualizado para ${newStatus}!`, 'success'); await loadAllData(); detailsDiv.classList.add('hidden'); }
+    }
+
+    function handleDelete(id, type) {
+        showConfirmationModal(`Tem certeza que quer excluir este ${type}?`, async () => {
+            const { error } = await supabase.from(type + 's').delete().eq('id', id);
+            if (error) { showToast(`Erro ao excluir: ${error.message}`, 'error'); }
+            else { showToast(`${type} excluído!`, 'success'); await loadAllData(); document.getElementById('historico-details').classList.add('hidden'); }
+        });
+    }
 
     document.addEventListener('DOMContentLoaded', () => {
-        // ... (código completo de inicialização e listeners da versão anterior)
+        document.getElementById('form-cliente').addEventListener('submit', handleFormSubmit);
+        document.getElementById('form-servico').addEventListener('submit', handleFormSubmit);
+        document.getElementById('form-orcamento').addEventListener('submit', handleOrcamentoSubmit);
+        
+        document.getElementById('btn-add-servico').addEventListener('click', () => {
+            const select = document.getElementById('servico-para-adicionar');
+            const servicoId = parseInt(select.value);
+            if (!servicoId || state.servicosNoOrcamento.some(s => s.id === servicoId)) return;
+            const servico = state.servicos.find(s => s.id === servicoId);
+            state.servicosNoOrcamento.push({ ...servico });
+            renderServicosNoOrcamento();
+            select.value = '';
+        });
+
+        document.getElementById('orcamento-servicos-lista').addEventListener('click', e => {
+            if (e.target.dataset.action === 'remove-servico') {
+                const servicoId = parseInt(e.target.closest('li').dataset.id);
+                state.servicosNoOrcamento = state.servicosNoOrcamento.filter(s => s.id !== servicoId);
+                renderServicosNoOrcamento();
+            }
+        });
+        
+        document.querySelector('#form-orcamento [name="desconto"]').addEventListener('input', calcularTotalOrcamento);
+
+        document.querySelector('nav').addEventListener('click', e => {
+            const target = e.target.closest('button');
+            if (!target) return;
+            const tab = target.dataset.tab;
+            if(tab){
+                document.querySelectorAll('.tab-content').forEach(s => s.classList.add('hidden'));
+                document.getElementById(tab).classList.remove('hidden');
+                document.querySelectorAll('nav button[data-tab]').forEach(b => b.classList.remove('active'));
+                target.classList.add('active');
+                localStorage.setItem('activeTab', tab);
+            }
+        });
+
+        document.getElementById('sync-button').addEventListener('click', loadAllData);
+
+        document.getElementById('main-container').addEventListener('click', e => {
+            const li = e.target.closest('li[data-id]');
+            if (!li) return;
+            
+            const button = e.target.closest('button[data-action]');
+            if(button){ // Ação de editar/deletar
+                e.stopPropagation();
+                const id = parseInt(li.dataset.id);
+                const type = button.dataset.type;
+                const itemData = state[type + 's'].find(i => i.id === id);
+
+                if(button.dataset.action === 'edit') {
+                    const form = document.getElementById(`form-${type}`);
+                    form.querySelector('input[type=hidden]').value = itemData.id;
+                    Object.keys(itemData).forEach(key => { if(form[key]) form[key].value = itemData[key]; });
+                    document.querySelector(`button[data-tab="${type}s"]`)?.click();
+                    window.scrollTo(0, 0);
+                } else if (button.dataset.action === 'delete') {
+                    handleDelete(id, type);
+                }
+            } else if (li.parentElement.id === 'lista-historico') { // Clicou no item do histórico
+                const orcamentoId = parseInt(li.dataset.id);
+                state.orcamentoAtual = state.orcamentos.find(o => o.id === orcamentoId);
+                document.querySelectorAll('#lista-historico li').forEach(item => item.classList.remove('selected'));
+                li.classList.add('selected');
+                renderHistoricoDetails();
+            }
+        });
+        
+        const activeTab = localStorage.getItem('activeTab') || 'clientes';
+        document.querySelector(`button[data-tab=${activeTab}]`)?.click();
+        loadAllData();
     });
 </script>
 </body>
