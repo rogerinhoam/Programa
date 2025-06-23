@@ -5,10 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>R.M. Estética Automotiva - Gestão Completa</title>
     
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#b30000">
-    <link rel="apple-touch-icon" href="icon-192x192.png">
-
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -164,16 +160,6 @@
 </div>
 <div id="toast-container"></div>
 
-<script>
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/sw.js')
-                .then(registration => console.log('Service Worker registrado com sucesso:', registration))
-                .catch(error => console.error('Falha ao registrar Service Worker:', error));
-        });
-    }
-</script>
-
 <script type="module">
     const { jsPDF } = window.jspdf;
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
@@ -220,7 +206,6 @@
         view: `<svg viewBox="0 0 24 24"><path fill="currentColor" d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-2 16H8v-2h4v2zm0-4H8v-2h4v2zm4-4H8V8h8v2z"/></svg>`
     };
 
-    // --- FUNÇÕES UTILITÁRIAS ---
     function showToast(message, type = 'success') {
         const toast = document.createElement('div');
         toast.className = `toast ${type}`;
@@ -261,7 +246,6 @@
         DOMElements.btnEnviarReciboWhats.disabled = !enabled;
     }
 
-    // --- FUNÇÕES DE RENDERIZAÇÃO ---
     function renderClientes(filter = '') {
         const lowerFilter = filter.toLowerCase();
         const filtered = state.clientes.filter(c => c.nome.toLowerCase().includes(lowerFilter) || (c.carro || '').toLowerCase().includes(lowerFilter) || (c.placa || '').toLowerCase().includes(lowerFilter));
@@ -276,7 +260,7 @@
 
     function renderOrcamentos() {
         DOMElements.listaOrcamentos.innerHTML = state.orcamentos.map(o => {
-            if (!o.clientes || !o.servicos) return ''; // Proteção contra dados órfãos
+            if (!o.clientes || !o.servicos) return '';
             const total = o.servicos.valor * (1 - (o.desconto || 0) / 100);
             return `<li data-id="${o.id}"><div class="item-info">${o.clientes.nome} — ${o.servicos.descricao} — Total: R$ ${total.toFixed(2)}</div><div class="item-actions"><button title="Ver Detalhes" data-action="view">${icons.view}</button><button title="Excluir" data-action="delete">${icons.delete}</button></div></li>`;
         }).join('') || `<li style="justify-content: center;">Nenhum orçamento salvo.</li>`;
@@ -296,7 +280,6 @@
         selectElement.value = currentValue;
     }
 
-    // --- LÓGICA DE DADOS (API) ---
     async function fetchData(tableName, orderOptions) {
         try {
             const { data, error } = await supabase.from(tableName).select('*').order(orderOptions.column, { ascending: orderOptions.ascending });
@@ -336,7 +319,6 @@
         renderSelectOptions(DOMElements.selectServico, state.servicos, 'id', s => `${s.descricao} — R$ ${parseFloat(s.valor).toFixed(2)}`);
     }
 
-    // --- HANDLERS DE AÇÕES (EVENTOS) ---
     async function handleSaveCliente(e) {
         e.preventDefault();
         const form = DOMElements.formCliente; setFormLoading(form, true);
@@ -444,18 +426,29 @@
         showToast('Recibo de serviço gerado!', 'success');
     }
 
-    function handleDelete(id, tableName, itemName) {
+    async function handleDelete(id, tableName, itemName) {
         showConfirmationModal(`Tem certeza que deseja excluir este ${itemName}? A ação não pode ser desfeita.`, async () => {
             try {
                 const { error } = await supabase.from(tableName).delete().eq('id', id);
                 if (error) throw error;
                 showToast(`${itemName} excluído com sucesso.`, 'success');
-                // Se um orçamento for excluído, limpa a tela de histórico se for o orçamento atual
+                
+                // Otimização: remove o item do estado local e renderiza novamente a partir dele, sem recarregar tudo da internet
+                if (tableName === 'clientes') {
+                    state.clientes = state.clientes.filter(c => c.id != id);
+                    await loadAndRenderAll(); // Precisa recarregar tudo para atualizar orçamentos órfãos, se houver
+                } else if (tableName === 'servicos') { // CORREÇÃO CRÍTICA: 'servicos' sem o 'ç'
+                    state.servicos = state.servicos.filter(s => s.id != id);
+                    await loadAndRenderAll(); // Precisa recarregar tudo para atualizar orçamentos órfãos
+                } else if (tableName === 'orcamentos') {
+                    state.orcamentos = state.orcamentos.filter(o => o.id != id);
+                    renderOrcamentos();
+                }
+
                 if(tableName === 'orcamentos' && state.orcamentoAtual && state.orcamentoAtual.id == id) {
                     DOMElements.historicoTexto.textContent = 'Selecione um orçamento na aba "Orçamentos" para ver os detalhes aqui.';
                     setHistoryButtonsState(false);
                 }
-                await loadAndRenderAll();
             } catch(error) {
                 console.error(`Erro ao excluir ${itemName}:`, error);
                 showToast(`Erro ao excluir ${itemName}: ${error.message}`, 'error');
@@ -482,7 +475,6 @@
         window.open(`https://wa.me/?text=${textoURI}`, '_blank');
     }
 
-    // --- SETUP DOS EVENT LISTENERS ---
     function setupEventListeners() {
         DOMElements.nav.addEventListener('click', (e) => {
             if (e.target.tagName !== 'BUTTON') return;
@@ -503,7 +495,8 @@
         const createListHandler = (editHandler, deleteHandler, viewHandler) => (e) => {
             const button = e.target.closest('button[data-action]');
             if (!button) return;
-            const id = button.closest('li').dataset.id;
+            const id = parseInt(button.closest('li').dataset.id, 10);
+            if (isNaN(id)) return;
             const action = button.dataset.action;
             if (action === 'edit' && editHandler) editHandler(id);
             if (action === 'delete' && deleteHandler) deleteHandler(id);
@@ -511,7 +504,7 @@
         };
 
         DOMElements.listaClientes.addEventListener('click', createListHandler(handleEditCliente, (id) => handleDelete(id, 'clientes', 'cliente')));
-        DOMElements.listaServicos.addEventListener('click', createListHandler(handleEditServico, (id) => handleDelete(id, 'serviços', 'serviço')));
+        DOMElements.listaServicos.addEventListener('click', createListHandler(handleEditServico, (id) => handleDelete(id, 'servicos', 'serviço'))); // CORREÇÃO CRÍTICA: 'servicos' sem o 'ç'
         DOMElements.listaOrcamentos.addEventListener('click', createListHandler(null, (id) => handleDelete(id, 'orcamentos', 'orçamento'), handleViewOrcamento));
         
         DOMElements.btnGerarOrcamentoPDF.addEventListener('click', () => handleGerarPdf(state.textoOrcamentoAtual, 'orcamento_rm_estetica.pdf'));
@@ -520,7 +513,6 @@
         DOMElements.btnEnviarReciboWhats.addEventListener('click', () => { if (!state.textoReciboAtual) handleGerarRecibo(); if (state.textoReciboAtual) handleEnviarWhatsApp(state.textoReciboAtual); });
     }
 
-    // --- INICIALIZAÇÃO DA APLICAÇÃO ---
     async function init() {
         console.log("Iniciando aplicação...");
         setupEventListeners();
