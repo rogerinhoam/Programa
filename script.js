@@ -5,7 +5,35 @@ const supabase = createClient(
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InprZGZpbWJmd2dvZmttbWN2eWZ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA2MzQxMTksImV4cCI6MjA2NjIxMDExOX0.vOTrEVYX30FpWPQykY5CF1QCfkyG5gDLnI_2N9TATRE'
 );
 
-window.cadastrarCliente = async () => {
+// --- CLIENTES ---
+
+async function listarClientes() {
+  const div = document.getElementById('listaClientes');
+  div.innerHTML = 'Carregando...';
+  const { data, error } = await supabase.from('clientes').select().order('nome');
+  if (error) {
+    div.innerHTML = 'Erro ao carregar clientes: ' + error.message;
+    return;
+  }
+  if (!data.length) {
+    div.innerHTML = 'Nenhum cliente cadastrado.';
+    return;
+  }
+  div.innerHTML = '';
+  data.forEach(c => {
+    const el = document.createElement('div');
+    el.className = 'entrada-lista';
+    el.innerHTML = `
+      <span>${c.nome} - ${c.telefone}</span>
+      <button class="btn-editar" onclick="editarCliente('${c.id}', '${c.nome}', '${c.telefone}')">Editar</button>
+      <button class="btn-excluir" onclick="excluirCliente('${c.id}')">Excluir</button>
+    `;
+    div.appendChild(el);
+  });
+}
+
+window.salvarCliente = async () => {
+  const id = document.getElementById('clienteId').value;
   const nome = document.getElementById('nome').value.trim();
   const telefone = document.getElementById('telefone').value.trim();
 
@@ -14,17 +42,78 @@ window.cadastrarCliente = async () => {
     return;
   }
 
-  const { error } = await supabase.from('clientes').insert({ nome, telefone });
-
-  if (error) {
-    alert("Erro ao salvar cliente: " + error.message);
+  if (id) {
+    // Atualizar
+    const { error } = await supabase.from('clientes').update({ nome, telefone }).eq('id', id);
+    if (error) {
+      alert("Erro ao atualizar cliente: " + error.message);
+      return;
+    }
+    alert("Cliente atualizado!");
   } else {
-    alert('Cliente salvo com sucesso!');
-    carregarClientes();
+    // Inserir novo
+    const { error } = await supabase.from('clientes').insert({ nome, telefone });
+    if (error) {
+      alert("Erro ao salvar cliente: " + error.message);
+      return;
+    }
+    alert("Cliente salvo!");
   }
+
+  document.getElementById('clienteId').value = '';
+  document.getElementById('nome').value = '';
+  document.getElementById('telefone').value = '';
+  listarClientes();
+  listarOrcamentos(); // Atualiza histórico se cliente mudou
 };
 
-window.cadastrarServico = async () => {
+window.editarCliente = (id, nome, telefone) => {
+  document.getElementById('clienteId').value = id;
+  document.getElementById('nome').value = nome;
+  document.getElementById('telefone').value = telefone;
+};
+
+window.excluirCliente = async (id) => {
+  if (!confirm("Quer mesmo excluir esse cliente?")) return;
+  const { error } = await supabase.from('clientes').delete().eq('id', id);
+  if (error) {
+    alert("Erro ao excluir cliente: " + error.message);
+    return;
+  }
+  alert("Cliente excluído!");
+  listarClientes();
+  listarOrcamentos();
+};
+
+// --- SERVIÇOS ---
+
+async function listarServicos() {
+  const div = document.getElementById('listaServicos');
+  div.innerHTML = 'Carregando...';
+  const { data, error } = await supabase.from('servicos').select().order('descricao');
+  if (error) {
+    div.innerHTML = 'Erro ao carregar serviços: ' + error.message;
+    return;
+  }
+  if (!data.length) {
+    div.innerHTML = 'Nenhum serviço cadastrado.';
+    return;
+  }
+  div.innerHTML = '';
+  data.forEach(s => {
+    const el = document.createElement('div');
+    el.className = 'entrada-lista';
+    el.innerHTML = `
+      <span>${s.descricao} - R$ ${s.valor.toFixed(2)}</span>
+      <button class="btn-editar" onclick="editarServico('${s.id}', '${s.descricao}', ${s.valor})">Editar</button>
+      <button class="btn-excluir" onclick="excluirServico('${s.id}')">Excluir</button>
+    `;
+    div.appendChild(el);
+  });
+}
+
+window.salvarServico = async () => {
+  const id = document.getElementById('servicoId').value;
   const descricao = document.getElementById('descricao').value.trim();
   const valor = parseFloat(document.getElementById('valor').value);
 
@@ -33,124 +122,92 @@ window.cadastrarServico = async () => {
     return;
   }
 
-  const { error } = await supabase.from('servicos').insert({ descricao, valor });
-
-  if (error) {
-    alert("Erro ao salvar serviço: " + error.message);
+  if (id) {
+    // Atualizar
+    const { error } = await supabase.from('servicos').update({ descricao, valor }).eq('id', id);
+    if (error) {
+      alert("Erro ao atualizar serviço: " + error.message);
+      return;
+    }
+    alert("Serviço atualizado!");
   } else {
-    alert('Serviço salvo com sucesso!');
-    carregarServicos();
+    // Inserir novo
+    const { error } = await supabase.from('servicos').insert({ descricao, valor });
+    if (error) {
+      alert("Erro ao salvar serviço: " + error.message);
+      return;
+    }
+    alert("Serviço salvo!");
   }
+
+  document.getElementById('servicoId').value = '';
+  document.getElementById('descricao').value = '';
+  document.getElementById('valor').value = '';
+  listarServicos();
+  listarOrcamentos(); // Atualiza histórico se serviço mudou
 };
 
-window.gerarOrcamento = async () => {
-  const clienteId = document.getElementById('clienteSelect').value;
-  const servicoId = document.getElementById('servicoSelect').value;
-  const forma = document.getElementById('formaPagamento').value;
-
-  if (!clienteId || !servicoId) {
-    alert("Selecione cliente e serviço.");
-    return;
-  }
-
-  const { data: cliente, error: errCli } = await supabase.from('clientes').select().eq('id', clienteId).single();
-  const { data: servico, error: errServ } = await supabase.from('servicos').select().eq('id', servicoId).single();
-
-  if (errCli || errServ) {
-    alert("Erro ao buscar dados: " + (errCli?.message || errServ?.message));
-    return;
-  }
-
-  const taxa = 20;
-  const total = parseFloat(servico.valor) + taxa;
-
-  const cupom = `
-=============================
-    R.M. Estética Automotiva
-=============================
-Cliente: ${cliente.nome}
-Serviço: ${servico.descricao}
-Valor: R$ ${servico.valor.toFixed(2)}
-Taxa: R$ ${taxa.toFixed(2)}
-Total: R$ ${total.toFixed(2)}
-Forma de Pagamento: ${forma}
-=============================
-  `;
-
-  document.getElementById('cupom').innerText = cupom;
-
-  const { error } = await supabase.from('orcamentos').insert({
-    cliente: cliente.nome,
-    telefone: cliente.telefone,
-    servico: servico.descricao,
-    valor: servico.valor,
-    taxa,
-    total,
-    forma
-  });
-
-  if (error) {
-    alert("Erro ao salvar orçamento: " + error.message);
-  } else {
-    carregarHistorico();
-    // Enviar para WhatsApp
-    const numero = cliente.telefone.replace(/\D/g, '');
-    window.open(`https://wa.me/55${numero}?text=${encodeURIComponent(cupom)}`, '_blank');
-  }
+window.editarServico = (id, descricao, valor) => {
+  document.getElementById('servicoId').value = id;
+  document.getElementById('descricao').value = descricao;
+  document.getElementById('valor').value = valor;
 };
 
-async function carregarClientes() {
-  const sel = document.getElementById('clienteSelect');
-  sel.innerHTML = '<option value="">Selecione um cliente</option>';
-
-  const { data, error } = await supabase.from('clientes').select();
-
+window.excluirServico = async (id) => {
+  if (!confirm("Quer mesmo excluir esse serviço?")) return;
+  const { error } = await supabase.from('servicos').delete().eq('id', id);
   if (error) {
-    alert("Erro ao carregar clientes: " + error.message);
+    alert("Erro ao excluir serviço: " + error.message);
     return;
   }
+  alert("Serviço excluído!");
+  listarServicos();
+  listarOrcamentos();
+};
 
-  data.forEach(c => sel.add(new Option(c.nome, c.id)));
-}
+// --- ORÇAMENTOS ---
 
-async function carregarServicos() {
-  const sel = document.getElementById('servicoSelect');
-  sel.innerHTML = '<option value="">Selecione um serviço</option>';
-
-  const { data, error } = await supabase.from('servicos').select();
-
-  if (error) {
-    alert("Erro ao carregar serviços: " + error.message);
-    return;
-  }
-
-  data.forEach(s => sel.add(new Option(s.descricao, s.id)));
-}
-
-async function carregarHistorico() {
-  const div = document.getElementById('listaHistorico');
-  div.innerHTML = '';
-
+async function listarOrcamentos() {
+  const div = document.getElementById('listaOrcamentos');
+  div.innerHTML = 'Carregando...';
   const { data, error } = await supabase.from('orcamentos').select().order('criado_em', { ascending: false });
-
   if (error) {
-    alert("Erro ao carregar histórico: " + error.message);
+    div.innerHTML = 'Erro ao carregar orçamentos: ' + error.message;
     return;
   }
-
+  if (!data.length) {
+    div.innerHTML = 'Nenhum orçamento cadastrado.';
+    return;
+  }
+  div.innerHTML = '';
   data.forEach(o => {
-    div.innerHTML += `<p>${o.cliente} - ${o.servico} - R$ ${o.total.toFixed(2)}</p>`;
+    const dt = new Date(o.criado_em);
+    const dtFormat = dt.toLocaleString('pt-BR');
+    const el = document.createElement('div');
+    el.className = 'entrada-lista';
+    el.innerHTML = `
+      <span><b>${o.cliente}</b> - ${o.servico} - R$ ${o.total.toFixed(2)} <br><small>${dtFormat}</small></span>
+      <button class="btn-excluir" onclick="excluirOrcamento('${o.id}')">Excluir</button>
+    `;
+    div.appendChild(el);
   });
 }
 
-window.testeSupabase = async () => {
-  const { error } = await supabase.from('teste').insert({ mensagem: 'teste ok' });
-  alert(error ? `Erro: ${error.message}` : 'Teste OK ✅');
+window.excluirOrcamento = async (id) => {
+  if (!confirm("Quer mesmo excluir esse orçamento?")) return;
+  const { error } = await supabase.from('orcamentos').delete().eq('id', id);
+  if (error) {
+    alert("Erro ao excluir orçamento: " + error.message);
+    return;
+  }
+  alert("Orçamento excluído!");
+  listarOrcamentos();
 };
+
+// --- INICIALIZAÇÃO ---
 
 window.onload = () => {
-  carregarClientes();
-  carregarServicos();
-  carregarHistorico();
+  listarClientes();
+  listarServicos();
+  listarOrcamentos();
 };
-
