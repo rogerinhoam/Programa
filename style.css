@@ -1,59 +1,51 @@
 body {
   font-family: Arial, sans-serif;
-  background: #f4f4f4;
-  margin: 0;
-}
-header {
-  background: #d32f2f;
-  color: white;
-  padding: 1em;
-  text-align: center;
-}
-nav {
-  display: flex;
-  background: #444;
-}
-nav button {
-  flex: 1;
-  padding: 1em;
-  background: #666;
-  color: white;
-  border: none;
-  cursor: pointer;
-}
-nav button:hover {
-  background: #888;
-}
-main {
-  padding: 1em;
-}
-.aba {
-  background: white;
-  padding: 1em;
-  border-radius: 8px;
-  margin-top: 1em;
-}
-.hidden {
-  display: none;
-}
-input, select, button {
-  width: 100%;
-  margin: 0.5em 0;
-  padding: 0.6em;
-  font-size: 1em;
-}
-button {
-  background: #388e3c;
-  color: white;
-  border: none;
-  border-radius: 4px;
-}
-button:hover {
-  background: #2e7d32;
-}
-pre {
-  background: #eee;
-  padding: 1em;
-  white-space: pre-wrap;
+  margin: 1em;
+  background: #f8f8f8;
+  color: #222;
 }
 
+h1 {
+  color: #cc0000;
+}
+
+nav button {
+  margin-right: 0.5em;
+  padding: 0.5em 1em;
+  background: #cc0000;
+  border: none;
+  color: white;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+nav button:hover {
+  background: #990000;
+}
+
+input, select, button {
+  margin-top: 0.5em;
+  padding: 0.5em;
+  width: 100%;
+  max-width: 300px;
+  display: block;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+button {
+  background: #cc0000;
+  color: white;
+  font-weight: bold;
+  margin-bottom: 1em;
+}
+
+button:hover {
+  background: #990000;
+}
+
+pre {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
