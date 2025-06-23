@@ -1,57 +1,50 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-br" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>R.M. Estética Automotiva</title>
+  <title>R.M. Estética Automotiva - Gestão</title>
   <link rel="stylesheet" href="style.css" />
   <script type="module" src="script.js" defer></script>
 </head>
 <body>
-  <h1>R.M. Estética Automotiva</h1>
+  <h1>R.M. Estética Automotiva - Gestão</h1>
 
   <nav>
     <button onclick="mostrarAba('clientes')">Clientes</button>
     <button onclick="mostrarAba('servicos')">Serviços</button>
     <button onclick="mostrarAba('orcamentos')">Orçamentos</button>
-    <button onclick="mostrarAba('teste')">⚙️ Teste DB</button>
   </nav>
 
   <section id="clientes" class="aba">
-    <h2>Cadastro de Clientes</h2>
+    <h2>Clientes</h2>
+
+    <div id="listaClientes"></div>
+
+    <h3>Adicionar / Editar Cliente</h3>
+    <input id="clienteId" type="hidden" />
     <input id="nome" placeholder="Nome do cliente" />
     <input id="telefone" placeholder="Telefone" />
-    <button onclick="cadastrarCliente()">Cadastrar Cliente</button>
+    <button onclick="salvarCliente()">Salvar Cliente</button>
   </section>
 
   <section id="servicos" class="aba" style="display:none">
-    <h2>Cadastro de Serviços</h2>
+    <h2>Serviços</h2>
+
+    <div id="listaServicos"></div>
+
+    <h3>Adicionar / Editar Serviço</h3>
+    <input id="servicoId" type="hidden" />
     <input id="descricao" placeholder="Descrição do serviço" />
-    <input id="valor" placeholder="Valor R$" type="number" step="0.01" />
-    <button onclick="cadastrarServico()">Cadastrar Serviço</button>
+    <input id="valor" type="number" step="0.01" placeholder="Valor R$" />
+    <button onclick="salvarServico()">Salvar Serviço</button>
   </section>
 
   <section id="orcamentos" class="aba" style="display:none">
-    <h2>Gerar Orçamento</h2>
-    <select id="clienteSelect"></select>
-    <select id="servicoSelect"></select>
-    <select id="formaPagamento">
-      <option value="Dinheiro">Dinheiro</option>
-      <option value="Cartão">Cartão</option>
-      <option value="Pix">Pix</option>
-    </select>
-    <button onclick="gerarOrcamento()">Gerar Orçamento</button>
-    <pre id="cupom" style="background:#eee; padding:1em; margin-top:1em;"></pre>
-  </section>
+    <h2>Orçamentos</h2>
 
-  <section id="teste" class="aba" style="display:none">
-    <h2>Teste conexão Supabase</h2>
-    <button onclick="testeSupabase()">Testar</button>
-  </section>
+    <div id="listaOrcamentos"></div>
 
-  <section id="historico" style="margin-top: 2em;">
-    <h2>Histórico de Orçamentos</h2>
-    <div id="listaHistorico"></div>
   </section>
 
   <script>
