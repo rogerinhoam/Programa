@@ -78,11 +78,11 @@
 <main id="main-container">
   <section id="clientes" class="tab-content card">
     <form id="form-cliente">
-      <input type="hidden" id="cliente-id" />
-      <label>Nome do Cliente</label><input type="text" id="cliente-nome" name="nome" required />
-      <label>Telefone</label><input type="tel" id="cliente-telefone" name="telefone" />
-      <label>Veículo</label><input type="text" id="cliente-carro" name="carro" />
-      <label>Placa</label><input type="text" id="cliente-placa" name="placa" />
+      <input type="hidden" name="id" />
+      <label>Nome do Cliente</label><input type="text" name="nome" required />
+      <label>Telefone</label><input type="tel" name="telefone" />
+      <label>Veículo</label><input type="text" name="carro" />
+      <label>Placa</label><input type="text" name="placa" />
       <button type="submit" class="btn-primary">Salvar Cliente</button>
     </form>
     <ul id="lista-clientes" class="item-list"></ul>
@@ -90,9 +90,9 @@
 
   <section id="servicos" class="tab-content card hidden">
     <form id="form-servico">
-      <input type="hidden" id="servico-id" />
-      <label>Descrição do Serviço</label><input type="text" id="servico-descricao" name="descricao" required />
-      <label>Valor (R$)</label><input type="number" step="0.01" id="servico-valor" name="valor" required />
+      <input type="hidden" name="id" />
+      <label>Descrição do Serviço</label><input type="text" name="descricao" required />
+      <label>Valor (R$)</label><input type="number" step="0.01" name="valor" required />
       <button type="submit" class="btn-primary">Salvar Serviço</button>
     </form>
     <ul id="lista-servicos" class="item-list"></ul>
@@ -100,10 +100,10 @@
 
   <section id="orcamentos" class="tab-content card hidden">
     <form id="form-orcamento">
-        <label>Cliente</label><select id="orcamento-cliente" name="cliente_id" required><option value="">Carregando...</option></select>
-        <label>Serviço</label><select id="orcamento-servico" name="servico_id" required><option value="">Carregando...</option></select>
-        <label>Desconto (%)</label><input type="number" id="orcamento-desconto" name="desconto" value="0" min="0" max="100" />
-        <label>Formas de Pagamento</label><input type="text" id="orcamento-pagamento" name="formas_pagamento" placeholder="Pix, Dinheiro, Cartão" />
+        <label>Cliente</label><select name="cliente_id" required><option value="">Carregando...</option></select>
+        <label>Serviço</label><select name="servico_id" required><option value="">Carregando...</option></select>
+        <label>Desconto (%)</label><input type="number" name="desconto" value="0" min="0" max="100" />
+        <label>Formas de Pagamento</label><input type="text" name="formas_pagamento" placeholder="Pix, Dinheiro, Cartão" />
         <button type="submit" class="btn-primary">Salvar Orçamento</button>
     </form>
   </section>
@@ -121,7 +121,7 @@
         <button id="btn-enviar-recibo-whatsapp" class="btn-primary">Recibo (Whats)</button>
       </div>
        <div style="text-align: center; margin-top: 20px;">
-           <button data-action="delete-orcamento" id="btn-delete-orcamento" style="background: none; color: var(--text-secondary); border: none; cursor: pointer; font-size: 0.8rem;">Excluir este Orçamento</button>
+           <button id="btn-delete-orcamento" style="background: none; color: var(--text-secondary); border: none; cursor: pointer; font-size: 0.8rem;">Excluir este Orçamento</button>
        </div>
     </div>
   </section>
@@ -150,11 +150,9 @@
         toast.className = `toast ${type}`;
         toast.textContent = message;
         toast.style.cssText = 'padding: 15px 20px; border-radius: 8px; color: white; font-weight: 600; box-shadow: 0 4px 10px rgba(0,0,0,0.3);';
-        if(type === 'success') toast.style.backgroundColor = '#28a745';
-        if(type === 'error') toast.style.backgroundColor = '#d9534f';
-        if(type === 'info') toast.style.backgroundColor = '#31708f';
+        toast.style.backgroundColor = type === 'error' ? '#d9534f' : (type === 'info' ? '#31708f' : '#28a745');
         container.appendChild(toast);
-        setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 500); }, 4000);
+        setTimeout(() => toast.remove(), 4000);
     }
 
     function showConfirmationModal(message, onConfirm) {
@@ -170,66 +168,68 @@
         cancelBtn.onclick = close;
     }
     
-    async function loadData() {
+    async function loadAllData() {
+        showToast('Sincronizando...', 'info');
         try {
-            const [clientesRes, servicosRes, orcamentosRes] = await Promise.all([
+            const [clientesRes, servicosRes, orcamentosRes] = await Promise.allSettled([
                 supabase.from('clientes').select('*').order('nome'),
                 supabase.from('servicos').select('*').order('descricao'),
                 supabase.from('orcamentos').select(`*, clientes(nome, telefone, carro, placa), servicos(descricao, valor)`).order('created_at', { ascending: false })
             ]);
-            if (clientesRes.error) throw clientesRes.error;
-            if (servicosRes.error) throw servicosRes.error;
-            if (orcamentosRes.error) throw orcamentosRes.error;
 
-            state.clientes = clientesRes.data;
-            state.servicos = servicosRes.data;
-            state.orcamentos = orcamentosRes.data;
+            if (clientesRes.status === 'rejected') throw clientesRes.reason;
+            if (servicosRes.status === 'rejected') throw servicosRes.reason;
+            if (orcamentosRes.status === 'rejected') throw orcamentosRes.reason;
 
-            document.getElementById('lista-clientes').innerHTML = state.clientes.map(c => `<li data-obj='${JSON.stringify(c)}'><div class="item-info">${c.nome}</div><div class="item-actions"><button title="Editar" data-action="edit" data-type="cliente">${icons.edit}</button><button title="Excluir" data-action="delete" data-type="cliente">${icons.delete}</button></div></li>`).join('') || `<li>Nenhum cliente.</li>`;
-            document.getElementById('lista-servicos').innerHTML = state.servicos.map(s => `<li data-obj='${JSON.stringify(s)}'><div class="item-info">${s.descricao} - R$ ${s.valor}</div><div class="item-actions"><button title="Editar" data-action="edit" data-type="servico">${icons.edit}</button><button title="Excluir" data-action="delete" data-type="servico">${icons.delete}</button></div></li>`).join('') || `<li>Nenhum serviço.</li>`;
-            document.getElementById('lista-historico').innerHTML = orcamentosRes.data.map(o => o.clientes && o.servicos ? `<li data-id="${o.id}"><div class="item-info"><strong>${o.clientes.nome}</strong> - ${o.servicos.descricao}</div> <span style="color: var(--text-secondary);">${new Date(o.created_at).toLocaleDateString('pt-BR')}</span></li>` : '').join('') || `<li>Nenhum orçamento.</li>`;
+            state.clientes = clientesRes.value.data;
+            state.servicos = servicosRes.value.data;
+            state.orcamentos = orcamentosRes.value.data;
+
+            document.getElementById('lista-clientes').innerHTML = state.clientes.map(c => `<li data-id="${c.id}"><div class="item-info">${c.nome}</div><div class="item-actions"><button title="Editar" data-action="edit" data-type="cliente">${icons.edit}</button><button title="Excluir" data-action="delete" data-type="cliente">${icons.delete}</button></div></li>`).join('') || `<li>Nenhum cliente.</li>`;
+            document.getElementById('lista-servicos').innerHTML = state.servicos.map(s => `<li data-id="${s.id}"><div class="item-info">${s.descricao} - R$ ${s.valor}</div><div class="item-actions"><button title="Editar" data-action="edit" data-type="servico">${icons.edit}</button><button title="Excluir" data-action="delete" data-type="servico">${icons.delete}</button></div></li>`).join('') || `<li>Nenhum serviço.</li>`;
+            document.getElementById('lista-historico').innerHTML = state.orcamentos.map(o => o.clientes && o.servicos ? `<li data-id="${o.id}"><div class="item-info"><strong>${o.clientes.nome}</strong> - ${o.servicos.descricao}</div> <span style="color: var(--text-secondary);">${new Date(o.created_at).toLocaleDateString('pt-BR')}</span></li>` : '').join('') || `<li>Nenhum orçamento.</li>`;
             
             const selCliente = document.getElementById('orcamento-cliente');
             const selServico = document.getElementById('orcamento-servico');
-            selCliente.innerHTML = '<option value="">Selecione...</option>' + clientesRes.data.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
-            selServico.innerHTML = '<option value="">Selecione...</option>' + servicosRes.data.map(s => `<option value="${s.id}">${s.descricao}</option>`).join('');
+            selCliente.innerHTML = '<option value="">Selecione...</option>' + state.clientes.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
+            selServico.innerHTML = '<option value="">Selecione...</option>' + state.servicos.map(s => `<option value="${s.id}">${s.descricao}</option>`).join('');
 
         } catch (error) {
             showToast(`Erro ao carregar dados: ${error.message}`, 'error');
+            console.error(error);
         }
     }
 
     async function handleFormSubmit(e) {
         e.preventDefault();
         const form = e.target;
-        const tableName = form.id.split('-')[1] + 's';
         const button = form.querySelector('button[type=submit]');
         const originalText = button.textContent;
         button.disabled = true;
         button.textContent = "SALVANDO...";
         
-        const id = form.querySelector('input[type=hidden]')?.value;
+        const tableName = form.id.split('-')[1] + 's';
+        const idField = form.querySelector('input[type=hidden]');
+        const id = idField?.value;
         const formData = new FormData(form);
         const data = Object.fromEntries(formData.entries());
-        
-        const idFieldName = `${tableName.slice(0, -1)}-id`;
-        delete data[idFieldName];
+        if(idField) delete data[idField.name];
 
         const query = id ? supabase.from(tableName).update(data).eq('id', id) : supabase.from(tableName).insert(data);
         const { error } = await query;
         
+        button.disabled = false;
+        button.textContent = originalText;
         if (error) {
             showToast(`Erro: ${error.message}`, 'error');
         } else {
             showToast(`${tableName === 'orcamentos' ? 'Orçamento' : tableName.slice(0, -1)} salvo!`, 'success');
             form.reset();
-            if (id) form.querySelector('input[type=hidden]').value = '';
-            await loadData();
+            if (idField) idField.value = '';
+            await loadAllData();
             const nextTab = tableName === 'orcamentos' ? 'historico' : tableName;
             document.querySelector(`button[data-tab="${nextTab}"]`)?.click();
         }
-        button.disabled = false;
-        button.textContent = originalText;
     }
     
     function renderHistoricoDetails(orcamento) {
@@ -303,7 +303,7 @@ PAGAMENTO:
                 else { 
                     showToast(`Orçamento excluído!`, 'success'); 
                     detailsDiv.classList.add('hidden');
-                    await loadData(); 
+                    await loadAllData(); 
                 }
             });
         };
@@ -330,55 +330,55 @@ PAGAMENTO:
         document.getElementById('sync-button').addEventListener('click', async (e) => {
             const btn = e.currentTarget;
             btn.classList.add('syncing'); btn.disabled = true;
-            showToast('Sincronizando...', 'info');
-            await loadData();
+            await loadAllData();
             setTimeout(() => {
                 btn.classList.remove('syncing');
                 btn.disabled = false;
                 showToast('Dados atualizados!', 'success');
-            }, 1000);
+            }, 500);
         });
 
         document.getElementById('main-container').addEventListener('click', async e => {
             const button = e.target.closest('button[data-action]');
-            const li = e.target.closest('li[data-obj]');
-            const historicoLi = e.target.closest('#lista-historico li');
-
-            if (historicoLi && !button) {
-                const orcamentoId = parseInt(historicoLi.dataset.id);
+            const li = e.target.closest('li');
+            
+            if (!button && li && li.parentElement.id === 'lista-historico') {
+                const orcamentoId = parseInt(li.dataset.id);
                 const orcamento = state.orcamentos.find(o => o.id === orcamentoId);
                 if (orcamento) {
                     document.querySelectorAll('#lista-historico li').forEach(item => item.classList.remove('selected'));
-                    historicoLi.classList.add('selected');
+                    li.classList.add('selected');
                     renderHistoricoDetails(orcamento);
                 }
                 return;
             }
-            
+
             if(!button || !li) return;
-            const itemData = JSON.parse(li.dataset.obj);
+            const itemData = state[button.dataset.type + 's'].find(i => i.id == li.dataset.id);
             const action = button.dataset.action;
             const type = button.dataset.type;
 
             if(action === 'delete') {
-                showConfirmationModal(`Excluir ${type} ${itemData.nome || itemData.descricao || `orçamento #${itemData.id}`}?`, async () => {
+                showConfirmationModal(`Excluir ${type} ${itemData.nome || itemData.descricao}?`, async () => {
                     const { error } = await supabase.from(type + 's').delete().eq('id', itemData.id);
                     if (error) showToast(`Erro: ${error.message}`, 'error');
-                    else { showToast(`${type} excluído!`, 'success'); await loadData(); }
+                    else { showToast(`${type} excluído!`, 'success'); await loadAllData(); }
                 });
             } else if (action === 'edit') {
                 const form = document.getElementById(`form-${type}`);
-                form.querySelector('input[type=hidden]').value = itemData.id;
+                const idField = form.querySelector('input[type=hidden]');
+                if (idField) idField.value = itemData.id;
                 Object.keys(itemData).forEach(key => {
                     if(form[key]) form[key].value = itemData[key];
                 });
                 document.querySelector(`button[data-tab="${type}s"]`)?.click();
+                window.scrollTo(0, 0);
             }
         });
         
         const activeTab = localStorage.getItem('activeTab') || 'clientes';
         document.querySelector(`button[data-tab=${activeTab}]`)?.click();
-        loadData();
+        loadAllData();
     });
 </script>
 </body>
