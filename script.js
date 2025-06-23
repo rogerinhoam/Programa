@@ -6,30 +6,41 @@ const supabase = createClient(
 );
 
 window.cadastrarCliente = async () => {
-  const nome = document.getElementById('nome').value;
-  const telefone = document.getElementById('telefone').value;
+  const nome = document.getElementById('nome').value.trim();
+  const telefone = document.getElementById('telefone').value.trim();
 
-  if (!nome || !telefone) return alert("Preencha todos os campos!");
+  if (!nome || !telefone) {
+    alert("Preencha todos os campos!");
+    return;
+  }
 
   const { error } = await supabase.from('clientes').insert({ nome, telefone });
 
   if (error) {
     alert("Erro ao salvar cliente: " + error.message);
-    console.error("Erro ao salvar:", error);
   } else {
     alert('Cliente salvo com sucesso!');
     carregarClientes();
   }
-
 };
 
 window.cadastrarServico = async () => {
-  const descricao = document.getElementById('descricao').value;
+  const descricao = document.getElementById('descricao').value.trim();
   const valor = parseFloat(document.getElementById('valor').value);
-  if (!descricao || isNaN(valor)) return alert("Preencha todos os campos!");
-  await supabase.from('servicos').insert({ descricao, valor });
-  alert('Serviço salvo!');
-  carregarServicos();
+
+  if (!descricao || isNaN(valor)) {
+    alert("Preencha todos os campos corretamente!");
+    return;
+  }
+
+  const { error } = await supabase.from('servicos').insert({ descricao, valor });
+
+  if (error) {
+    alert("Erro ao salvar serviço: " + error.message);
+  } else {
+    alert('Serviço salvo com sucesso!');
+    carregarServicos();
+  }
 };
 
 window.gerarOrcamento = async () => {
@@ -37,19 +48,29 @@ window.gerarOrcamento = async () => {
   const servicoId = document.getElementById('servicoSelect').value;
   const forma = document.getElementById('formaPagamento').value;
 
-  const cliente = await supabase.from('clientes').select().eq('id', clienteId).single();
-  const servico = await supabase.from('servicos').select().eq('id', servicoId).single();
+  if (!clienteId || !servicoId) {
+    alert("Selecione cliente e serviço.");
+    return;
+  }
+
+  const { data: cliente, error: errCli } = await supabase.from('clientes').select().eq('id', clienteId).single();
+  const { data: servico, error: errServ } = await supabase.from('servicos').select().eq('id', servicoId).single();
+
+  if (errCli || errServ) {
+    alert("Erro ao buscar dados: " + (errCli?.message || errServ?.message));
+    return;
+  }
 
   const taxa = 20;
-  const total = parseFloat(servico.data.valor) + taxa;
+  const total = parseFloat(servico.valor) + taxa;
 
   const cupom = `
 =============================
     R.M. Estética Automotiva
 =============================
-Cliente: ${cliente.data.nome}
-Serviço: ${servico.data.descricao}
-Valor: R$ ${servico.data.valor.toFixed(2)}
+Cliente: ${cliente.nome}
+Serviço: ${servico.descricao}
+Valor: R$ ${servico.valor.toFixed(2)}
 Taxa: R$ ${taxa.toFixed(2)}
 Total: R$ ${total.toFixed(2)}
 Forma de Pagamento: ${forma}
@@ -58,48 +79,67 @@ Forma de Pagamento: ${forma}
 
   document.getElementById('cupom').innerText = cupom;
 
-  await supabase.from('orcamentos').insert({
-    cliente: cliente.data.nome,
-    telefone: cliente.data.telefone,
-    servico: servico.data.descricao,
-    valor: servico.data.valor,
+  const { error } = await supabase.from('orcamentos').insert({
+    cliente: cliente.nome,
+    telefone: cliente.telefone,
+    servico: servico.descricao,
+    valor: servico.valor,
     taxa,
     total,
     forma
   });
 
-  carregarHistorico();
-
-  const numero = cliente.data.telefone.replace(/\D/g, '');
-  window.open(`https://wa.me/55${numero}?text=${encodeURIComponent(cupom)}`, '_blank');
+  if (error) {
+    alert("Erro ao salvar orçamento: " + error.message);
+  } else {
+    carregarHistorico();
+    // Enviar para WhatsApp
+    const numero = cliente.telefone.replace(/\D/g, '');
+    window.open(`https://wa.me/55${numero}?text=${encodeURIComponent(cupom)}`, '_blank');
+  }
 };
 
 async function carregarClientes() {
   const sel = document.getElementById('clienteSelect');
   sel.innerHTML = '<option value="">Selecione um cliente</option>';
+
   const { data, error } = await supabase.from('clientes').select();
-  console.log("CLIENTES:", data, error);
+
   if (error) {
     alert("Erro ao carregar clientes: " + error.message);
     return;
   }
-  data.forEach(c => sel.add(new Option(c.nome, c.id)));
 
+  data.forEach(c => sel.add(new Option(c.nome, c.id)));
 }
 
 async function carregarServicos() {
   const sel = document.getElementById('servicoSelect');
   sel.innerHTML = '<option value="">Selecione um serviço</option>';
-  const { data } = await supabase.from('servicos').select();
+
+  const { data, error } = await supabase.from('servicos').select();
+
+  if (error) {
+    alert("Erro ao carregar serviços: " + error.message);
+    return;
+  }
+
   data.forEach(s => sel.add(new Option(s.descricao, s.id)));
 }
 
 async function carregarHistorico() {
   const div = document.getElementById('listaHistorico');
   div.innerHTML = '';
-  const { data } = await supabase.from('orcamentos').select().order('criado_em', { ascending: false });
+
+  const { data, error } = await supabase.from('orcamentos').select().order('criado_em', { ascending: false });
+
+  if (error) {
+    alert("Erro ao carregar histórico: " + error.message);
+    return;
+  }
+
   data.forEach(o => {
-    div.innerHTML += `<p>${o.cliente} - ${o.servico} - R$ ${o.total}</p>`;
+    div.innerHTML += `<p>${o.cliente} - ${o.servico} - R$ ${o.total.toFixed(2)}</p>`;
   });
 }
 
