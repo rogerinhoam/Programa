@@ -2,65 +2,63 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>R.M. Estética Automotiva</title>
   <link rel="stylesheet" href="style.css" />
+  <script type="module" src="script.js" defer></script>
 </head>
 <body>
-  <header><h1>🚗 R.M. Estética Automotiva</h1></header>
+  <h1>R.M. Estética Automotiva</h1>
+
   <nav>
-    <button onclick="mostrarAba('clientes')">📋 Clientes</button>
-    <button onclick="mostrarAba('servicos')">🛠 Serviços</button>
-    <button onclick="mostrarAba('orcamentos')">🧾 Orçamentos</button>
-    <button onclick="mostrarAba('historico')">📜 Histórico</button>
+    <button onclick="mostrarAba('clientes')">Clientes</button>
+    <button onclick="mostrarAba('servicos')">Serviços</button>
+    <button onclick="mostrarAba('orcamentos')">Orçamentos</button>
     <button onclick="mostrarAba('teste')">⚙️ Teste DB</button>
   </nav>
-  <main>
-    <section id="clientes" class="aba">
-      <h2>Cadastro de Cliente</h2>
-      <input id="nome" placeholder="Nome" />
-      <input id="telefone" placeholder="Telefone" />
-      <button onclick="cadastrarCliente()">Salvar Cliente</button>
-    </section>
 
-    <section id="servicos" class="aba hidden">
-      <h2>Cadastro de Serviço</h2>
-      <input id="descricao" placeholder="Descrição" />
-      <input id="valor" type="number" placeholder="Valor (R$)" />
-      <button onclick="cadastrarServico()">Salvar Serviço</button>
-    </section>
+  <section id="clientes" class="aba">
+    <h2>Cadastro de Clientes</h2>
+    <input id="nome" placeholder="Nome do cliente" />
+    <input id="telefone" placeholder="Telefone" />
+    <button onclick="cadastrarCliente()">Cadastrar Cliente</button>
+  </section>
 
-    <section id="orcamentos" class="aba hidden">
-      <h2>Gerar Orçamento</h2>
-      <select id="clienteSelect"></select>
-      <select id="servicoSelect"></select>
-      <select id="formaPagamento">
-        <option value="Pix">Pix</option>
-        <option value="Dinheiro">Dinheiro</option>
-        <option value="Cartão">Cartão</option>
-      </select>
-      <button onclick="gerarOrcamento()">Gerar Cupom</button>
-      <pre id="cupom"></pre>
-    </section>
+  <section id="servicos" class="aba" style="display:none">
+    <h2>Cadastro de Serviços</h2>
+    <input id="descricao" placeholder="Descrição do serviço" />
+    <input id="valor" placeholder="Valor R$" type="number" step="0.01" />
+    <button onclick="cadastrarServico()">Cadastrar Serviço</button>
+  </section>
 
-    <section id="historico" class="aba hidden">
-      <h2>Histórico</h2>
-      <div id="listaHistorico"></div>
-    </section>
+  <section id="orcamentos" class="aba" style="display:none">
+    <h2>Gerar Orçamento</h2>
+    <select id="clienteSelect"></select>
+    <select id="servicoSelect"></select>
+    <select id="formaPagamento">
+      <option value="Dinheiro">Dinheiro</option>
+      <option value="Cartão">Cartão</option>
+      <option value="Pix">Pix</option>
+    </select>
+    <button onclick="gerarOrcamento()">Gerar Orçamento</button>
+    <pre id="cupom" style="background:#eee; padding:1em; margin-top:1em;"></pre>
+  </section>
 
-    <section id="teste" class="aba hidden">
-      <h2>⚙️ Teste de Conexão Supabase</h2>
-      <button onclick="testeSupabase()">Testar</button>
-    </section>
-  </main>
+  <section id="teste" class="aba" style="display:none">
+    <h2>Teste conexão Supabase</h2>
+    <button onclick="testeSupabase()">Testar</button>
+  </section>
 
-  <footer><p>&copy; 2025 R.M. Estética Automotiva</p></footer>
+  <section id="historico" style="margin-top: 2em;">
+    <h2>Histórico de Orçamentos</h2>
+    <div id="listaHistorico"></div>
+  </section>
 
-  <script type="module" src="script.js"></script>
   <script>
-    function mostrarAba(id) {
-      document.querySelectorAll('.aba').forEach(aba => aba.classList.add('hidden'));
-      document.getElementById(id).classList.remove('hidden');
+    function mostrarAba(nome) {
+      document.querySelectorAll('.aba').forEach(sec => {
+        sec.style.display = (sec.id === nome) ? 'block' : 'none';
+      });
     }
   </script>
 </body>
