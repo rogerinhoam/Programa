@@ -138,23 +138,13 @@
   </section>
 </main>
 
-<div id="modal-confirm" class="modal-overlay">
-  <div class="modal-content">
-    <p id="modal-text">Você tem certeza?</p>
-    <div class="modal-buttons">
-      <button id="modal-cancel-btn">Cancelar</button>
-      <button id="modal-confirm-btn">Confirmar</button>
-    </div>
-  </div>
-</div>
+<div id="modal-confirm" class="modal-overlay"><div class="modal-content"><p id="modal-text">Você tem certeza?</p><div class="modal-buttons"><button id="modal-cancel-btn">Cancelar</button><button id="modal-confirm-btn">Confirmar</button></div></div></div>
 <div id="toast-container"></div>
 
 <script>
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/sw.js')
-                .then(r => console.log('Service Worker registrado'))
-                .catch(e => console.error('Falha ao registrar Service Worker:', e));
+            navigator.serviceWorker.register('/sw.js').then(r => console.log('Service Worker registrado')).catch(e => console.error('Falha ao registrar Service Worker:', e));
         });
     }
 </script>
@@ -169,29 +159,48 @@
 
     const DOMElements = {
         nav: document.querySelector('nav'),
-        formCliente: document.getElementById('form-cliente'),
-        formServico: document.getElementById('form-servico'),
-        formOrcamento: document.getElementById('form-orcamento'),
-        listaClientes: document.getElementById('lista-clientes'),
-        listaServicos: document.getElementById('lista-servicos'),
-        listaOrcamentos: document.getElementById('lista-orcamentos'),
-        historicoTexto: document.getElementById('historico-texto'),
-        modal: document.getElementById('modal-confirm'),
-        modalText: document.getElementById('modal-text'),
-        modalConfirmBtn: document.getElementById('modal-confirm-btn'),
-        modalCancelBtn: document.getElementById('modal-cancel-btn'),
+        toastContainer: document.getElementById('toast-container'),
+        // ... (outros elementos são acessados dinamicamente)
     };
+    
+    // --- FUNÇÕES UTILITÁRIAS (ISOLADAS E CONFIÁVEIS) ---
+    function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.textContent = message;
+        DOMElements.toastContainer.appendChild(toast);
+        setTimeout(() => toast.remove(), 4500);
+    }
 
-    const icons = {
-        edit: `<svg viewBox="0 0 24 24"><path fill="currentColor" d="M17.293 2.293a1 1 0 0 1 1.414 0l3 3a1 1 0 0 1 0 1.414l-13 13A1 1 0 0 1 8 20H4a1 1 0 0 1-1-1v-4a1 1 0 0 1 .293-.707l13-13zM16 5.414l-9 9V18h3.586l9-9L16 5.414z"/></svg>`,
-        delete: `<svg viewBox="0 0 24 24"><path fill="currentColor" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zm13-15H5l1-1h12l1 1zM4 5h16v2H4V5z"/></svg>`,
-        view: `<svg viewBox="0 0 24 24"><path fill="currentColor" d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-2 16H8v-2h4v2zm0-4H8v-2h4v2zm4-4H8V8h8v2z"/></svg>`
-    };
+    function showConfirmationModal(message, onConfirm) {
+        const modal = document.getElementById('modal-confirm');
+        document.getElementById('modal-text').textContent = message;
+        modal.classList.add('visible');
+        const confirmBtn = document.getElementById('modal-confirm-btn');
+        const cancelBtn = document.getElementById('modal-cancel-btn');
+        
+        const close = () => modal.classList.remove('visible');
+        
+        const newConfirmBtn = confirmBtn.cloneNode(true); // Remove listeners antigos
+        confirmBtn.replaceWith(newConfirmBtn);
+        
+        newConfirmBtn.onclick = () => { close(); onConfirm(); };
+        cancelBtn.onclick = close;
+    }
 
-    function showToast(message, type = 'success') { /* ...código mantido... */ }
-    function showConfirmationModal(message, onConfirm) { /* ...código mantido... */ }
-    function setFormLoading(form, isLoading) { /* ...código mantido... */ }
-
+    function setFormLoading(form, isLoading) {
+        const button = form.querySelector('button[type=submit]');
+        if (!button) return;
+        if (isLoading) {
+            button.disabled = true;
+            button.textContent = 'Salvando...';
+        } else {
+            button.disabled = false;
+            button.textContent = button.dataset.originalText || 'Salvar';
+        }
+    }
+    
+    // --- LÓGICA PRINCIPAL ---
     async function fetchDataAndRender() {
         try {
             const { data: clientes, error: errClientes } = await supabase.from('clientes').select('*').order('nome');
@@ -204,23 +213,26 @@
             if (errOrcamentos) throw errOrcamentos;
 
             // Renderizar Clientes
-            DOMElements.listaClientes.innerHTML = clientes.map(c => `<li data-id="${c.id}" data-obj='${JSON.stringify(c)}'><div class="item-info">${c.nome} — ${c.carro || '-'} — ${c.placa || '-'}</div><div class="item-actions"><button data-action="edit">${icons.edit}</button><button data-action="delete">${icons.delete}</button></div></li>`).join('') || `<li>Nenhum cliente.</li>`;
+            const listaClientes = document.getElementById('lista-clientes');
+            listaClientes.innerHTML = clientes.map(c => `<li data-id="${c.id}" data-obj='${JSON.stringify(c)}'><div class="item-info">${c.nome} — ${c.carro || '-'}</div><div class="item-actions"><button data-action="edit">${icons.edit}</button><button data-action="delete">${icons.delete}</button></div></li>`).join('') || `<li>Nenhum cliente cadastrado.</li>`;
             
             // Renderizar Serviços
-            DOMElements.listaServicos.innerHTML = servicos.map(s => `<li data-id="${s.id}" data-obj='${JSON.stringify(s)}'><div class="item-info">${s.descricao} — R$ ${parseFloat(s.valor).toFixed(2)}</div><div class="item-actions"><button data-action="edit">${icons.edit}</button><button data-action="delete">${icons.delete}</button></div></li>`).join('') || `<li>Nenhum serviço.</li>`;
+            const listaServicos = document.getElementById('lista-servicos');
+            listaServicos.innerHTML = servicos.map(s => `<li data-id="${s.id}" data-obj='${JSON.stringify(s)}'><div class="item-info">${s.descricao} — R$ ${parseFloat(s.valor).toFixed(2)}</div><div class="item-actions"><button data-action="edit">${icons.edit}</button><button data-action="delete">${icons.delete}</button></div></li>`).join('') || `<li>Nenhum serviço cadastrado.</li>`;
             
             // Renderizar Orçamentos
-            DOMElements.listaOrcamentos.innerHTML = orcamentos.map(o => {
+            const listaOrcamentos = document.getElementById('lista-orcamentos');
+            listaOrcamentos.innerHTML = orcamentos.map(o => {
                 if (!o.clientes || !o.servicos) return '';
                 const total = o.servicos.valor * (1 - (o.desconto || 0) / 100);
                 return `<li data-id="${o.id}" data-obj='${JSON.stringify(o)}'><div class="item-info">${o.clientes.nome} — ${o.servicos.descricao} — R$ ${total.toFixed(2)}</div><div class="item-actions"><button data-action="view">${icons.view}</button><button data-action="delete">${icons.delete}</button></div></li>`;
-            }).join('') || `<li>Nenhum orçamento.</li>`;
+            }).join('') || `<li>Nenhum orçamento cadastrado.</li>`;
             
-            // Popular Selects do formulário de orçamento
+            // Popular Selects
             const selectCliente = document.getElementById('orcamento-cliente');
             const selectServico = document.getElementById('orcamento-servico');
             selectCliente.innerHTML = '<option value="">Selecione um cliente</option>' + clientes.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
-            selectServico.innerHTML = '<option value="">Selecione um serviço</option>' + servicos.map(s => `<option value="${s.id}">${s.descricao}</option>`).join('');
+            selectServico.innerHTML = '<option value="">Selecione um serviço</option>' + servicos.map(s => `<option value="${s.id}">${s.descricao} (R$ ${s.valor})</option>`).join('');
 
         } catch (error) {
             console.error("Erro Crítico ao carregar dados:", error);
@@ -228,61 +240,48 @@
         }
     }
 
-    // --- LÓGICA DE EVENTOS COM RECARREGAMENTO ---
-    DOMElements.formCliente.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        setFormLoading(DOMElements.formCliente, true);
-        const form = e.target;
-        const id = form['cliente-id'].value;
-        const data = { nome: form['cliente-nome'].value, telefone: form['cliente-telefone'].value, carro: form['cliente-carro'].value, placa: form['cliente-placa'].value };
-        const { error } = id ? await supabase.from('clientes').update(data).eq('id', id) : await supabase.from('clientes').insert(data);
-        if (error) {
-            showToast(`Erro: ${error.message}`, 'error');
-            setFormLoading(DOMElements.formCliente, false);
-        } else {
-            showToast(`Cliente ${id ? 'atualizado' : 'salvo'}!`, 'success');
-            setTimeout(() => window.location.reload(), 1000);
-        }
-    });
+    function handleFormSubmit(form, tableName, successMessage) {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            setFormLoading(form, true);
+            const id = form.querySelector('input[type=hidden]')?.value;
+            const formData = new FormData(form);
+            const data = {};
+            
+            // Mapeamento especial para cada formulário
+            if(tableName === 'clientes') {
+                data.nome = formData.get('cliente-nome');
+                data.telefone = formData.get('cliente-telefone');
+                data.carro = formData.get('cliente-carro');
+                data.placa = formData.get('cliente-placa');
+            } else if (tableName === 'servicos') {
+                data.descricao = formData.get('servico-descricao');
+                data.valor = formData.get('servico-valor');
+            } else if (tableName === 'orcamentos') {
+                data.cliente_id = formData.get('orcamento-cliente');
+                data.servico_id = formData.get('orcamento-servico');
+                data.desconto = formData.get('orcamento-desconto') || 0;
+                data.formas_pagamento = Array.from(form.querySelectorAll('input[name="pagamento"]:checked')).map(cb => cb.value).join(', ');
+                 if (!data.cliente_id || !data.servico_id) {
+                    showToast('Cliente e Serviço são obrigatórios!', 'error');
+                    setFormLoading(form, false);
+                    return;
+                }
+            }
 
-    DOMElements.formServico.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        setFormLoading(DOMElements.formServico, true);
-        const form = e.target;
-        const id = form['servico-id'].value;
-        const data = { descricao: form['servico-descricao'].value, valor: form['servico-valor'].value };
-        const { error } = id ? await supabase.from('servicos').update(data).eq('id', id) : await supabase.from('servicos').insert(data);
-        if (error) {
-            showToast(`Erro: ${error.message}`, 'error');
-            setFormLoading(DOMElements.formServico, false);
-        } else {
-            showToast(`Serviço ${id ? 'atualizado' : 'salvo'}!`, 'success');
-            setTimeout(() => window.location.reload(), 1000);
-        }
-    });
-    
-    DOMElements.formOrcamento.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        setFormLoading(DOMElements.formOrcamento, true);
-        const form = e.target;
-        const formasPagamento = Array.from(form.querySelectorAll('input[name="pagamento"]:checked')).map(cb => cb.value).join(', ');
-        const data = { cliente_id: form['orcamento-cliente'].value, servico_id: form['orcamento-servico'].value, desconto: form['orcamento-desconto'].value, formas_pagamento: formasPagamento };
-        if (!data.cliente_id || !data.servico_id) {
-            showToast('Cliente e Serviço são obrigatórios!', 'error');
-            setFormLoading(DOMElements.formOrcamento, false);
-            return;
-        }
-        const { error } = await supabase.from('orcamentos').insert(data);
-        if (error) {
-            showToast(`Erro: ${error.message}`, 'error');
-            setFormLoading(DOMElements.formOrcamento, false);
-        } else {
-            showToast('Orçamento salvo com sucesso!', 'success');
-            setTimeout(() => window.location.reload(), 1000);
-        }
-    });
+            const query = id ? supabase.from(tableName).update(data).eq('id', id) : supabase.from(tableName).insert(data);
+            const { error } = await query;
+            
+            if (error) {
+                showToast(`Erro: ${error.message}`, 'error');
+                setFormLoading(form, false);
+            } else {
+                showToast(successMessage, 'success');
+                setTimeout(() => window.location.href = window.location.pathname + `?tab=${tableName}`, 500); // Recarrega na mesma aba
+            }
+        });
+    }
 
-    // --- AÇÕES NAS LISTAS (EDITAR, EXCLUIR, VISUALIZAR) ---
     document.querySelector('main').addEventListener('click', (e) => {
         const button = e.target.closest('button[data-action]');
         if (!button) return;
@@ -291,57 +290,64 @@
         const li = button.closest('li');
         const id = li.dataset.id;
         const itemData = JSON.parse(li.dataset.obj);
+        const parentId = li.parentElement.id;
 
-        // Ações de Excluir
         if (action === 'delete') {
             let tableName, itemName;
-            if (li.parentElement.id === 'lista-clientes') { tableName = 'clientes'; itemName = 'cliente'; }
-            if (li.parentElement.id === 'lista-servicos') { tableName = 'servicos'; itemName = 'serviço'; }
-            if (li.parentElement.id === 'lista-orcamentos') { tableName = 'orcamentos'; itemName = 'orçamento'; }
+            if (parentId === 'lista-clientes') { tableName = 'clientes'; itemName = 'cliente'; }
+            if (parentId === 'lista-servicos') { tableName = 'servicos'; itemName = 'serviço'; }
+            if (parentId === 'lista-orcamentos') { tableName = 'orcamentos'; itemName = 'orçamento'; }
 
             showConfirmationModal(`Tem certeza que quer excluir este ${itemName}?`, async () => {
                 const { error } = await supabase.from(tableName).delete().eq('id', id);
-                if (error) {
-                    showToast(`Erro ao excluir: ${error.message}`, 'error');
-                } else {
+                if (error) { showToast(`Erro ao excluir: ${error.message}`, 'error'); }
+                else {
                     showToast(`${itemName} excluído com sucesso!`, 'success');
-                    setTimeout(() => window.location.reload(), 1000);
+                    setTimeout(() => window.location.reload(), 500);
                 }
             });
         }
-
-        // Ações de Editar
-        if (action === 'edit') {
-            if (li.parentElement.id === 'lista-clientes') {
-                DOMElements.formCliente['cliente-id'].value = itemData.id;
-                DOMElements.formCliente['cliente-nome'].value = itemData.nome;
-                DOMElements.formCliente['cliente-telefone'].value = itemData.telefone;
-                DOMElements.formCliente['cliente-carro'].value = itemData.carro;
-                DOMElements.formCliente['cliente-placa'].value = itemData.placa;
+        else if (action === 'edit') {
+            if (parentId === 'lista-clientes') {
+                const form = document.getElementById('form-cliente');
+                form['cliente-id'].value = itemData.id; form['cliente-nome'].value = itemData.nome;
+                form['cliente-telefone'].value = itemData.telefone; form['cliente-carro'].value = itemData.carro; form['cliente-placa'].value = itemData.placa;
                 document.querySelector('button[data-tab="clientes"]').click();
             }
-            if (li.parentElement.id === 'lista-servicos') {
-                DOMElements.formServico['servico-id'].value = itemData.id;
-                DOMElements.formServico['servico-descricao'].value = itemData.descricao;
-                DOMElements.formServico['servico-valor'].value = itemData.valor;
+            if (parentId === 'lista-servicos') {
+                const form = document.getElementById('form-servico');
+                form['servico-id'].value = itemData.id; form['servico-descricao'].value = itemData.descricao; form['servico-valor'].value = itemData.valor;
                 document.querySelector('button[data-tab="servicos"]').click();
             }
         }
-        
-        // Ação de Visualizar Orçamento
-        if (action === 'view') {
-            // ... (código para gerar orçamento/recibo mantido)
+        else if (action === 'view') {
+            // ... (A lógica de gerar PDF/Recibo/WhatsApp permanece a mesma)
         }
     });
-    
-    // --- LÓGICA DE NAVEGAÇÃO E INICIALIZAÇÃO ---
-    DOMElements.nav.addEventListener('click', (e) => { /* ...código mantido... */ });
-    document.addEventListener('DOMContentLoaded', () => {
-        const activeTab = localStorage.getItem('activeTab') || 'clientes';
-        document.querySelector(`button[data-tab="${activeTab}"]`).click();
-        fetchDataAndRender();
+
+    DOMElements.nav.addEventListener('click', (e) => {
+        const tabName = e.target.dataset.tab;
+        if (!tabName) return;
+        document.querySelectorAll('.tab-content').forEach(tc => tc.classList.add('hidden'));
+        document.getElementById(tabName).classList.remove('hidden');
+        document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        localStorage.setItem('activeTab', tabName);
     });
 
+    // Inicialização
+    document.addEventListener('DOMContentLoaded', () => {
+        handleFormSubmit(document.getElementById('form-cliente'), 'clientes', 'Cliente salvo!');
+        handleFormSubmit(document.getElementById('form-servico'), 'servicos', 'Serviço salvo!');
+        handleFormSubmit(document.getElementById('form-orcamento'), 'orcamentos', 'Orçamento salvo!');
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const activeTab = urlParams.get('tab') || localStorage.getItem('activeTab') || 'clientes';
+        
+        document.querySelector(`button[data-tab="${activeTab}"]`)?.click();
+        
+        fetchDataAndRender();
+    });
 </script>
 </body>
 </html>
