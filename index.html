@@ -262,22 +262,23 @@
   );
 
   // Navegação entre abas
-  const tabs = document.querySelectorAll('nav button');
-  const sections = document.querySelectorAll('section');
-  tabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-      tabs.forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      const target = tab.dataset.tab;
-      sections.forEach(s => {
-        if (s.id === target) {
-          s.classList.add('active');
-        } else {
-          s.classList.remove('active');
-        }
-      });
-    });
+const tabs = document.querySelectorAll('nav button');
+const sections = document.querySelectorAll('section');
+
+tabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    // Remove classe active de todas as abas e seções
+    tabs.forEach(t => t.classList.remove('active'));
+    sections.forEach(s => s.classList.remove('active'));
+
+    // Adiciona active na aba clicada e na seção correspondente
+    tab.classList.add('active');
+    const target = tab.dataset.tab;
+    const section = document.getElementById(target);
+    if(section) section.classList.add('active');
   });
+});
+
 
   // Funções carregar dados
   async function carregarClientes() {
