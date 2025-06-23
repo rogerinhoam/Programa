@@ -204,47 +204,47 @@
 <header>✨ R.M. Estética Automotiva ✨</header>
 
 <nav>
-  <button class="active" data-tab="clientes">👤 Clientes</button>
-  <button data-tab="servicos">🛠 Serviços</button>
-  <button data-tab="orcamento">📋 Orçamento</button>
-  <button data-tab="historico">📜 Histórico</button>
+  <button class="active" data-tab="clientes" aria-controls="clientes" aria-selected="true">👤 Clientes</button>
+  <button data-tab="servicos" aria-controls="servicos" aria-selected="false">🛠 Serviços</button>
+  <button data-tab="orcamento" aria-controls="orcamento" aria-selected="false">📋 Orçamento</button>
+  <button data-tab="historico" aria-controls="historico" aria-selected="false">📜 Histórico</button>
 </nav>
 
-<section id="clientes" class="active" aria-label="Clientes">
+<section id="clientes" class="active" role="tabpanel" tabindex="0" aria-labelledby="clientes-tab" aria-hidden="false">
   <h2>👤 Cadastro de Clientes</h2>
   <form id="form-clientes" autocomplete="off">
-    <input type="text" id="nome" placeholder="Nome completo" required />
-    <input type="tel" id="telefone" placeholder="Telefone (opcional)" />
-    <input type="text" id="carro" placeholder="Carro (opcional)" />
-    <input type="text" id="placa" placeholder="Placa (opcional)" />
+    <input type="text" id="nome" name="nome" placeholder="Nome completo" required />
+    <input type="tel" id="telefone" name="telefone" placeholder="Telefone (opcional)" />
+    <input type="text" id="carro" name="carro" placeholder="Carro (opcional)" />
+    <input type="text" id="placa" name="placa" placeholder="Placa (opcional)" />
     <button type="submit">Salvar Cliente 💾</button>
   </form>
-  <ul id="lista-clientes"></ul>
+  <ul id="lista-clientes" aria-live="polite" aria-label="Lista de clientes"></ul>
 </section>
 
-<section id="servicos" aria-label="Serviços">
+<section id="servicos" role="tabpanel" tabindex="0" aria-labelledby="servicos-tab" aria-hidden="true">
   <h2>🛠 Cadastro de Serviços</h2>
   <form id="form-servicos" autocomplete="off">
-    <input type="text" id="descricao" placeholder="Descrição do serviço" required />
-    <input type="number" id="valor" placeholder="Valor R$" min="0" step="0.01" required />
+    <input type="text" id="descricao" name="descricao" placeholder="Descrição do serviço" required />
+    <input type="number" id="valor" name="valor" placeholder="Valor R$" min="0" step="0.01" required />
     <button type="submit">Salvar Serviço 💾</button>
   </form>
-  <ul id="lista-servicos"></ul>
+  <ul id="lista-servicos" aria-live="polite" aria-label="Lista de serviços"></ul>
 </section>
 
-<section id="orcamento" aria-label="Orçamento">
+<section id="orcamento" role="tabpanel" tabindex="0" aria-labelledby="orcamento-tab" aria-hidden="true">
   <h2>📋 Gerar Orçamento</h2>
   <form id="form-orcamento" autocomplete="off">
-    <select id="select-cliente" required aria-label="Selecione cliente"></select>
-    <select id="select-servico" required aria-label="Selecione serviço"></select>
-    <input type="number" id="desconto" placeholder="Desconto (%)" min="0" max="100" step="1" />
+    <select id="select-cliente" name="select-cliente" required aria-label="Selecione cliente"></select>
+    <select id="select-servico" name="select-servico" required aria-label="Selecione serviço"></select>
+    <input type="number" id="desconto" name="desconto" placeholder="Desconto (%)" min="0" max="100" step="1" />
     <button type="submit">Salvar Orçamento 💾</button>
   </form>
 </section>
 
-<section id="historico" aria-label="Histórico">
+<section id="historico" role="tabpanel" tabindex="0" aria-labelledby="historico-tab" aria-hidden="true">
   <h2>📜 Histórico de Orçamentos</h2>
-  <ul id="lista-orcamentos"></ul>
+  <ul id="lista-orcamentos" aria-live="polite" aria-label="Lista de orçamentos"></ul>
   <pre id="orcamento-box" class="orcamento-box" aria-live="polite" aria-atomic="true"></pre>
   <div class="actions">
     <button id="btnSalvarOrcamento">Salvar Orçamento 💾</button>
@@ -266,14 +266,22 @@
   const sections = document.querySelectorAll('section');
   tabs.forEach(tab => {
     tab.addEventListener('click', () => {
-      tabs.forEach(t => t.classList.remove('active'));
+      tabs.forEach(t => {
+        t.classList.remove('active');
+        t.setAttribute('aria-selected', 'false');
+      });
       tab.classList.add('active');
+      tab.setAttribute('aria-selected', 'true');
+
       const target = tab.dataset.tab;
       sections.forEach(s => {
         if (s.id === target) {
           s.classList.add('active');
+          s.setAttribute('aria-hidden', 'false');
+          s.focus();
         } else {
           s.classList.remove('active');
+          s.setAttribute('aria-hidden', 'true');
         }
       });
     });
@@ -339,6 +347,7 @@
 Data: ${new Date(o.created_at).toLocaleString()}
 Cliente: ${o.clientes.nome}
 Carro: ${o.clientes.carro || '-'} (${o.clientes.placa || '-'})
+
 ------------------------------
 SERVIÇOS:
 - ${o.servicos.descricao}  R$ ${o.servicos.valor.toFixed(2)}
