@@ -29,10 +29,10 @@
       .search-container { margin-bottom: 15px; }
       .search-container input { width: 100%; padding: 10px 15px; background-color: var(--bg-secondary); border: 1px solid var(--bg-tertiary); color: var(--text-primary); border-radius: var(--border-radius); font-size: 16px; }
       .item-list { list-style: none; padding: 0; margin: 10px 0 30px 0; border: 1px solid var(--bg-tertiary); border-radius: var(--border-radius); background: var(--bg-secondary); }
-      .item-list li { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-bottom: 1px solid var(--bg-tertiary); transition: background-color var(--transition-speed) ease; }
-      .item-list li:hover { background-color: var(--bg-tertiary); }
+      .item-list li { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-bottom: 1px solid var(--bg-tertiary); transition: background-color var(--transition-speed) ease; cursor: pointer; }
+      .item-list li:hover, .item-list li.selected { background-color: var(--bg-tertiary); }
       .item-list li:last-child { border-bottom: none; }
-      .item-info { flex-grow: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; margin-right: 15px; }
+      .item-info { flex-grow: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; margin-right: 15px; pointer-events: none; }
       .item-actions { display: flex; gap: 10px; }
       .item-actions button { background: transparent; border: none; color: var(--text-secondary); cursor: pointer; padding: 5px; transition: color var(--transition-speed) ease; }
       .item-actions button:hover { color: var(--accent-highlight); }
@@ -50,7 +50,7 @@
       form button[type=submit] { background: var(--accent-primary); color: var(--accent-highlight); border: none; padding: 12px 20px; cursor: pointer; font-weight: 700; font-size: 16px; border-radius: var(--border-radius); transition: background-color var(--transition-speed) ease; }
       form button[type=submit]:hover { background: var(--accent-secondary); }
       form button[type=submit]:disabled { background-color: var(--bg-tertiary); cursor: not-allowed; color: var(--text-secondary); }
-      #historico-texto { white-space: pre-wrap; background: var(--bg-secondary); padding: 20px; border-radius: var(--border-radius); font-family: 'Courier New', Courier, monospace; font-size: 14px; line-height: 1.5; max-height: 400px; overflow-y: auto; border: 1px solid var(--bg-tertiary); }
+      #historico-texto { white-space: pre-wrap; background: var(--bg-secondary); padding: 20px; border-radius: var(--border-radius); font-family: 'Courier New', Courier, monospace; font-size: 14px; line-height: 1.5; max-height: 400px; overflow-y: auto; border: 1px solid var(--bg-tertiary); margin-bottom: 20px; }
       .btn-group { margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
       .btn-group button { background: var(--accent-primary); color: var(--accent-highlight); border: none; padding: 12px 16px; cursor: pointer; font-weight: 600; border-radius: var(--border-radius); transition: background-color var(--transition-speed) ease; }
       .btn-group button:hover { background: var(--accent-secondary); }
@@ -71,6 +71,7 @@
       @keyframes slideIn { to { opacity: 1; transform: translateX(0); } }
       @keyframes slideOut { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(100%); } }
       .hidden { display: none; }
+      #historico-details { margin-top: 20px; }
       @media(max-width:600px){ nav { flex-wrap: wrap; } .btn-group { grid-template-columns: 1fr; } }
     </style>
 </head>
@@ -81,7 +82,7 @@
 <nav>
   <button data-tab="clientes">Clientes</button>
   <button data-tab="servicos">Serviços</button>
-  <button data-tab="orcamentos">Orçamentos</button>
+  <button data-tab="orcamentos">Novo Orçamento</button>
   <button data-tab="historico">Histórico</button>
 </nav>
 
@@ -89,10 +90,10 @@
   <section id="clientes" class="tab-content hidden">
     <form id="form-cliente">
       <input type="hidden" id="cliente-id" />
-      <label for="cliente-nome">Nome</label><input type="text" id="cliente-nome" required />
-      <label for="cliente-telefone">Telefone</label><input type="text" id="cliente-telefone" placeholder="(XX) XXXXX-XXXX"/>
-      <label for="cliente-carro">Carro</label><input type="text" id="cliente-carro" placeholder="Ex: Honda Civic" />
-      <label for="cliente-placa">Placa</label><input type="text" id="cliente-placa" placeholder="ABC-1234"/>
+      <label for="cliente-nome">Nome</label><input type="text" id="cliente-nome" name="nome" required />
+      <label for="cliente-telefone">Telefone</label><input type="text" id="cliente-telefone" name="telefone" placeholder="(XX) XXXXX-XXXX"/>
+      <label for="cliente-carro">Carro</label><input type="text" id="cliente-carro" name="carro" placeholder="Ex: Honda Civic" />
+      <label for="cliente-placa">Placa</label><input type="text" id="cliente-placa" name="placa" placeholder="ABC-1234"/>
       <button type="submit">Salvar Cliente</button>
     </form>
     <ul id="lista-clientes" class="item-list"></ul>
@@ -101,8 +102,8 @@
   <section id="servicos" class="tab-content hidden">
     <form id="form-servico">
       <input type="hidden" id="servico-id" />
-      <label for="servico-descricao">Descrição</label><input type="text" id="servico-descricao" required />
-      <label for="servico-valor">Valor (R$)</label><input type="number" step="0.01" id="servico-valor" required />
+      <label for="servico-descricao">Descrição</label><input type="text" id="servico-descricao" name="descricao" required />
+      <label for="servico-valor">Valor (R$)</label><input type="number" step="0.01" id="servico-valor" name="valor" required />
       <button type="submit">Salvar Serviço</button>
     </form>
     <ul id="lista-servicos" class="item-list"></ul>
@@ -110,9 +111,9 @@
 
   <section id="orcamentos" class="tab-content hidden">
     <form id="form-orcamento">
-      <label for="orcamento-cliente">Cliente</label><select id="orcamento-cliente" required><option value="">Selecione um cliente</option></select>
-      <label for="orcamento-servico">Serviço</label><select id="orcamento-servico" required><option value="">Selecione um serviço</option></select>
-      <label for="orcamento-desconto">Desconto (%)</label><input type="number" id="orcamento-desconto" value="0" min="0" max="100" />
+      <label for="orcamento-cliente">Cliente</label><select id="orcamento-cliente" name="cliente_id" required><option value="">Selecione um cliente</option></select>
+      <label for="orcamento-servico">Serviço</label><select id="orcamento-servico" name="servico_id" required><option value="">Selecione um serviço</option></select>
+      <label for="orcamento-desconto">Desconto (%)</label><input type="number" id="orcamento-desconto" name="desconto" value="0" min="0" max="100" />
       <div class="checkbox-group">
           <label>Formas de Pagamento Aceitas</label>
           <div class="checkbox-container">
@@ -124,16 +125,22 @@
       </div>
       <button type="submit">Salvar Orçamento</button>
     </form>
-    <ul id="lista-orcamentos" class="item-list"></ul>
   </section>
 
   <section id="historico" class="tab-content hidden">
-    <pre id="historico-texto">Selecione um orçamento na aba "Orçamentos" para ver os detalhes aqui.</pre>
-    <div class="btn-group">
-      <button id="btn-gerar-orcamento-pdf" disabled>Gerar Orçamento (PDF)</button>
-      <button id="btn-enviar-orcamento-whatsapp" disabled>Enviar Orçamento (WhatsApp)</button>
-      <button id="btn-gerar-recibo-pdf" disabled>Gerar Recibo (PDF)</button>
-      <button id="btn-enviar-recibo-whatsapp" disabled>Enviar Recibo (WhatsApp)</button>
+    <h3>Histórico de Orçamentos</h3>
+    <ul id="lista-historico" class="item-list"></ul>
+    <div id="historico-details" class="hidden">
+      <pre id="historico-texto"></pre>
+      <div class="btn-group">
+        <button id="btn-gerar-orcamento-pdf">Gerar Orçamento (PDF)</button>
+        <button id="btn-enviar-orcamento-whatsapp">Enviar Orçamento (WhatsApp)</button>
+        <button id="btn-gerar-recibo-pdf">Gerar Recibo (PDF)</button>
+        <button id="btn-enviar-recibo-whatsapp">Enviar Recibo (WhatsApp)</button>
+      </div>
+       <div style="text-align: right; margin-top: 15px;">
+           <button data-action="delete-orcamento" id="btn-delete-orcamento" style="background: transparent; color: var(--accent-secondary); border: none; cursor: pointer;">Excluir este Orçamento</button>
+       </div>
     </div>
   </section>
 </main>
@@ -142,11 +149,7 @@
 <div id="toast-container"></div>
 
 <script>
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/sw.js').then(r => console.log('Service Worker registrado')).catch(e => console.error('Falha ao registrar Service Worker:', e));
-        });
-    }
+    if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('/sw.js').then(r => console.log('SW ok')).catch(e => console.error('SW falhou:', e)); }); }
 </script>
 
 <script type="module">
@@ -157,18 +160,23 @@
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InprZGZpbWJmd2dvZmttbWN2eWZ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA2MzQxMTksImV4cCI6MjA2NjIxMDExOX0.vOTrEVYX30FpWPQykY5CF1QCfkyG5gDLnI_2N9TATRE';
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const DOMElements = {
-        nav: document.querySelector('nav'),
-        toastContainer: document.getElementById('toast-container'),
-        // ... (outros elementos são acessados dinamicamente)
+    const state = {
+        orcamentoAtual: null,
+        textoOrcamentoAtual: '',
+        textoReciboAtual: '',
     };
-    
-    // --- FUNÇÕES UTILITÁRIAS (ISOLADAS E CONFIÁVEIS) ---
+
+    const icons = {
+        edit: `<svg viewBox="0 0 24 24"><path fill="currentColor" d="M17.293 2.293a1 1 0 0 1 1.414 0l3 3a1 1 0 0 1 0 1.414l-13 13A1 1 0 0 1 8 20H4a1 1 0 0 1-1-1v-4a1 1 0 0 1 .293-.707l13-13zM16 5.414l-9 9V18h3.586l9-9L16 5.414z"/></svg>`,
+        delete: `<svg viewBox="0 0 24 24"><path fill="currentColor" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zm13-15H5l1-1h12l1 1zM4 5h16v2H4V5z"/></svg>`,
+    };
+
     function showToast(message, type = 'success') {
+        const toastContainer = document.getElementById('toast-container');
         const toast = document.createElement('div');
         toast.className = `toast ${type}`;
         toast.textContent = message;
-        DOMElements.toastContainer.appendChild(toast);
+        toastContainer.appendChild(toast);
         setTimeout(() => toast.remove(), 4500);
     }
 
@@ -178,29 +186,13 @@
         modal.classList.add('visible');
         const confirmBtn = document.getElementById('modal-confirm-btn');
         const cancelBtn = document.getElementById('modal-cancel-btn');
-        
         const close = () => modal.classList.remove('visible');
-        
-        const newConfirmBtn = confirmBtn.cloneNode(true); // Remove listeners antigos
+        const newConfirmBtn = confirmBtn.cloneNode(true);
         confirmBtn.replaceWith(newConfirmBtn);
-        
         newConfirmBtn.onclick = () => { close(); onConfirm(); };
         cancelBtn.onclick = close;
     }
 
-    function setFormLoading(form, isLoading) {
-        const button = form.querySelector('button[type=submit]');
-        if (!button) return;
-        if (isLoading) {
-            button.disabled = true;
-            button.textContent = 'Salvando...';
-        } else {
-            button.disabled = false;
-            button.textContent = button.dataset.originalText || 'Salvar';
-        }
-    }
-    
-    // --- LÓGICA PRINCIPAL ---
     async function fetchDataAndRender() {
         try {
             const { data: clientes, error: errClientes } = await supabase.from('clientes').select('*').order('nome');
@@ -212,120 +204,138 @@
             const { data: orcamentos, error: errOrcamentos } = await supabase.from('orcamentos').select(`*, clientes(*), servicos(*)`).order('created_at', { ascending: false });
             if (errOrcamentos) throw errOrcamentos;
 
-            // Renderizar Clientes
-            const listaClientes = document.getElementById('lista-clientes');
-            listaClientes.innerHTML = clientes.map(c => `<li data-id="${c.id}" data-obj='${JSON.stringify(c)}'><div class="item-info">${c.nome} — ${c.carro || '-'}</div><div class="item-actions"><button data-action="edit">${icons.edit}</button><button data-action="delete">${icons.delete}</button></div></li>`).join('') || `<li>Nenhum cliente cadastrado.</li>`;
+            document.getElementById('lista-clientes').innerHTML = clientes.map(c => `<li data-id="${c.id}" data-obj='${JSON.stringify(c)}'><div class="item-info">${c.nome} — ${c.carro || '-'}</div><div class="item-actions"><button data-action="edit">${icons.edit}</button><button data-action="delete">${icons.delete}</button></div></li>`).join('') || `<li>Nenhum cliente.</li>`;
+            document.getElementById('lista-servicos').innerHTML = servicos.map(s => `<li data-id="${s.id}" data-obj='${JSON.stringify(s)}'><div class="item-info">${s.descricao} — R$ ${s.valor.toFixed(2)}</div><div class="item-actions"><button data-action="edit">${icons.edit}</button><button data-action="delete">${icons.delete}</button></div></li>`).join('') || `<li>Nenhum serviço.</li>`;
             
-            // Renderizar Serviços
-            const listaServicos = document.getElementById('lista-servicos');
-            listaServicos.innerHTML = servicos.map(s => `<li data-id="${s.id}" data-obj='${JSON.stringify(s)}'><div class="item-info">${s.descricao} — R$ ${parseFloat(s.valor).toFixed(2)}</div><div class="item-actions"><button data-action="edit">${icons.edit}</button><button data-action="delete">${icons.delete}</button></div></li>`).join('') || `<li>Nenhum serviço cadastrado.</li>`;
-            
-            // Renderizar Orçamentos
-            const listaOrcamentos = document.getElementById('lista-orcamentos');
-            listaOrcamentos.innerHTML = orcamentos.map(o => {
+            document.getElementById('lista-historico').innerHTML = orcamentos.map(o => {
                 if (!o.clientes || !o.servicos) return '';
-                const total = o.servicos.valor * (1 - (o.desconto || 0) / 100);
-                return `<li data-id="${o.id}" data-obj='${JSON.stringify(o)}'><div class="item-info">${o.clientes.nome} — ${o.servicos.descricao} — R$ ${total.toFixed(2)}</div><div class="item-actions"><button data-action="view">${icons.view}</button><button data-action="delete">${icons.delete}</button></div></li>`;
-            }).join('') || `<li>Nenhum orçamento cadastrado.</li>`;
+                const dataFormatada = new Date(o.created_at).toLocaleDateString('pt-BR');
+                return `<li data-id="${o.id}" data-obj='${JSON.stringify(o)}'><div class="item-info"><strong>${o.clientes.nome}</strong> — ${o.servicos.descricao} (${dataFormatada})</div></li>`;
+            }).join('') || `<li>Nenhum histórico.</li>`;
             
-            // Popular Selects
             const selectCliente = document.getElementById('orcamento-cliente');
             const selectServico = document.getElementById('orcamento-servico');
             selectCliente.innerHTML = '<option value="">Selecione um cliente</option>' + clientes.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
             selectServico.innerHTML = '<option value="">Selecione um serviço</option>' + servicos.map(s => `<option value="${s.id}">${s.descricao} (R$ ${s.valor})</option>`).join('');
-
         } catch (error) {
-            console.error("Erro Crítico ao carregar dados:", error);
             showToast("Falha ao carregar dados do servidor.", "error");
         }
     }
+    
+    // Formulários
+    document.getElementById('form-cliente').addEventListener('submit', handleFormSubmit);
+    document.getElementById('form-servico').addEventListener('submit', handleFormSubmit);
+    document.getElementById('form-orcamento').addEventListener('submit', handleFormSubmit);
 
-    function handleFormSubmit(form, tableName, successMessage) {
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            setFormLoading(form, true);
-            const id = form.querySelector('input[type=hidden]')?.value;
-            const formData = new FormData(form);
-            const data = {};
-            
-            // Mapeamento especial para cada formulário
-            if(tableName === 'clientes') {
-                data.nome = formData.get('cliente-nome');
-                data.telefone = formData.get('cliente-telefone');
-                data.carro = formData.get('cliente-carro');
-                data.placa = formData.get('cliente-placa');
-            } else if (tableName === 'servicos') {
-                data.descricao = formData.get('servico-descricao');
-                data.valor = formData.get('servico-valor');
-            } else if (tableName === 'orcamentos') {
-                data.cliente_id = formData.get('orcamento-cliente');
-                data.servico_id = formData.get('orcamento-servico');
-                data.desconto = formData.get('orcamento-desconto') || 0;
-                data.formas_pagamento = Array.from(form.querySelectorAll('input[name="pagamento"]:checked')).map(cb => cb.value).join(', ');
-                 if (!data.cliente_id || !data.servico_id) {
-                    showToast('Cliente e Serviço são obrigatórios!', 'error');
-                    setFormLoading(form, false);
-                    return;
-                }
-            }
+    async function handleFormSubmit(e) {
+        e.preventDefault();
+        const form = e.target;
+        const idField = form.querySelector('input[type=hidden]');
+        const id = idField?.value;
+        const tableName = form.id.split('-')[1] + 's';
+        
+        const formData = new FormData(form);
+        const data = {};
+        for(let [key, value] of formData.entries()) {
+            if(key !== 'pagamento') data[key] = value;
+        }
 
-            const query = id ? supabase.from(tableName).update(data).eq('id', id) : supabase.from(tableName).insert(data);
-            const { error } = await query;
-            
-            if (error) {
-                showToast(`Erro: ${error.message}`, 'error');
-                setFormLoading(form, false);
-            } else {
-                showToast(successMessage, 'success');
-                setTimeout(() => window.location.href = window.location.pathname + `?tab=${tableName}`, 500); // Recarrega na mesma aba
-            }
-        });
+        if (tableName === 'orcamentos') {
+             data.formas_pagamento = Array.from(form.querySelectorAll('input[name="pagamento"]:checked')).map(cb => cb.value).join(', ');
+             if (!data.cliente_id || !data.servico_id) { showToast('Cliente e Serviço são obrigatórios!', 'error'); return; }
+        }
+        
+        const query = id ? supabase.from(tableName).update(data).eq('id', id) : supabase.from(tableName).insert(data);
+        const { error } = await query;
+
+        if (error) {
+            showToast(`Erro: ${error.message}`, 'error');
+        } else {
+            showToast(`Operação concluída com sucesso!`, 'success');
+            setTimeout(() => window.location.href = window.location.pathname + `?tab=${tableName}`, 500);
+        }
     }
 
+    // Ações nas listas
     document.querySelector('main').addEventListener('click', (e) => {
-        const button = e.target.closest('button[data-action]');
-        if (!button) return;
+        const target = e.target;
+        const li = target.closest('li');
+        if (!li) return;
 
-        const action = button.dataset.action;
-        const li = button.closest('li');
+        const button = target.closest('button[data-action]');
         const id = li.dataset.id;
         const itemData = JSON.parse(li.dataset.obj);
         const parentId = li.parentElement.id;
 
-        if (action === 'delete') {
+        // Ação de deletar em Clientes e Serviços
+        if (button && button.dataset.action === 'delete') {
             let tableName, itemName;
             if (parentId === 'lista-clientes') { tableName = 'clientes'; itemName = 'cliente'; }
             if (parentId === 'lista-servicos') { tableName = 'servicos'; itemName = 'serviço'; }
-            if (parentId === 'lista-orcamentos') { tableName = 'orcamentos'; itemName = 'orçamento'; }
 
-            showConfirmationModal(`Tem certeza que quer excluir este ${itemName}?`, async () => {
-                const { error } = await supabase.from(tableName).delete().eq('id', id);
-                if (error) { showToast(`Erro ao excluir: ${error.message}`, 'error'); }
-                else {
-                    showToast(`${itemName} excluído com sucesso!`, 'success');
-                    setTimeout(() => window.location.reload(), 500);
-                }
-            });
-        }
-        else if (action === 'edit') {
+            if (tableName) {
+                showConfirmationModal(`Tem certeza que quer excluir este ${itemName}?`, async () => {
+                    const { error } = await supabase.from(tableName).delete().eq('id', id);
+                    if (error) { showToast(`Erro ao excluir: ${error.message}`, 'error'); }
+                    else { showToast(`${itemName} excluído!`, 'success'); setTimeout(() => window.location.reload(), 500); }
+                });
+            }
+        } 
+        // Ação de editar
+        else if (button && button.dataset.action === 'edit') {
             if (parentId === 'lista-clientes') {
                 const form = document.getElementById('form-cliente');
-                form['cliente-id'].value = itemData.id; form['cliente-nome'].value = itemData.nome;
-                form['cliente-telefone'].value = itemData.telefone; form['cliente-carro'].value = itemData.carro; form['cliente-placa'].value = itemData.placa;
+                form['cliente-id'].value = itemData.id; form.nome.value = itemData.nome;
+                form.telefone.value = itemData.telefone; form.carro.value = itemData.carro; form.placa.value = itemData.placa;
                 document.querySelector('button[data-tab="clientes"]').click();
             }
             if (parentId === 'lista-servicos') {
                 const form = document.getElementById('form-servico');
-                form['servico-id'].value = itemData.id; form['servico-descricao'].value = itemData.descricao; form['servico-valor'].value = itemData.valor;
+                form['servico-id'].value = itemData.id; form.descricao.value = itemData.descricao; form.valor.value = itemData.valor;
                 document.querySelector('button[data-tab="servicos"]').click();
             }
         }
-        else if (action === 'view') {
-            // ... (A lógica de gerar PDF/Recibo/WhatsApp permanece a mesma)
+        // Ação de clicar num item do histórico
+        else if (parentId === 'lista-historico') {
+            document.querySelectorAll('#lista-historico li').forEach(item => item.classList.remove('selected'));
+            li.classList.add('selected');
+            handleViewOrcamento(itemData);
         }
     });
 
-    DOMElements.nav.addEventListener('click', (e) => {
+    function handleViewOrcamento(orc) {
+        state.orcamentoAtual = orc;
+        const dt = new Date(orc.created_at); const dataFormatada = dt.toLocaleDateString('pt-BR');
+        const valorOriginal = orc.servicos.valor; const descontoValor = valorOriginal * (orc.desconto / 100); const valorFinal = valorOriginal - descontoValor;
+        
+        state.textoOrcamentoAtual = `Orçamento R.M. Estética Automotiva\n=====================================\nData: ${dataFormatada}\nCliente: ${orc.clientes.nome}\nTelefone: ${orc.clientes.telefone || '-'}\nVeículo: ${orc.clientes.carro || '-'} (Placa: ${orc.clientes.placa || '-'})\n=====================================\nSERVIÇO PROPOSTO:\n- ${orc.servicos.descricao}\n=====================================\nVALORES:\n- Valor do Serviço: .... R$ ${valorOriginal.toFixed(2)}\n- Desconto Aplicado: ... ${orc.desconto}% (R$ ${descontoValor.toFixed(2)})\n- VALOR TOTAL: ......... R$ ${valorFinal.toFixed(2)}\n=====================================\nFormas de Pagamento Aceitas:\n${orc.formas_pagamento || 'Não especificado'}\n=====================================\nVálido por 7 dias.\nObrigado pela preferência!\nContato: (24) 99948-6232`;
+        state.textoReciboAtual = `RECIBO DE SERVIÇO (NÃO FISCAL)\n=====================================\nData da Finalização: ${new Date().toLocaleDateString('pt-BR')}\nCliente: ${orc.clientes.nome}\nVeículo: ${orc.clientes.carro || '-'}\n=====================================\nSERVIÇO REALIZADO:\n- ${orc.servicos.descricao}\n=====================================\nPAGAMENTO:\n- VALOR PAGO: .......... R$ ${valorFinal.toFixed(2)}\n- Forma de Pagamento: .. ${orc.formas_pagamento || 'Não especificado'}\n=====================================\nDeclaramos o recebimento e agradecemos a preferência!`;
+        
+        document.getElementById('historico-details').classList.remove('hidden');
+        document.getElementById('historico-texto').textContent = state.textoOrcamentoAtual;
+    }
+    
+    document.getElementById('btn-delete-orcamento').addEventListener('click', () => {
+        if(!state.orcamentoAtual) return;
+        showConfirmationModal(`Tem certeza que quer excluir este orçamento?`, async () => {
+            const { error } = await supabase.from('orcamentos').delete().eq('id', state.orcamentoAtual.id);
+            if (error) { showToast(`Erro ao excluir: ${error.message}`, 'error'); }
+            else { showToast(`Orçamento excluído!`, 'success'); setTimeout(() => window.location.reload(), 500); }
+        });
+    });
+
+    document.getElementById('btn-gerar-orcamento-pdf').addEventListener('click', () => new jsPDF().text(state.textoOrcamentoAtual, 10, 10).save('orcamento.pdf'));
+    document.getElementById('btn-enviar-orcamento-whatsapp').addEventListener('click', () => window.open(`https://wa.me/?text=${encodeURIComponent(state.textoOrcamentoAtual)}`));
+    document.getElementById('btn-gerar-recibo-pdf').addEventListener('click', () => {
+        document.getElementById('historico-texto').textContent = state.textoReciboAtual;
+        new jsPDF().text(state.textoReciboAtual, 10, 10).save('recibo.pdf');
+    });
+    document.getElementById('btn-enviar-recibo-whatsapp').addEventListener('click', () => {
+        document.getElementById('historico-texto').textContent = state.textoReciboAtual;
+        window.open(`https://wa.me/?text=${encodeURIComponent(state.textoReciboAtual)}`);
+    });
+
+    document.querySelector('nav').addEventListener('click', (e) => {
         const tabName = e.target.dataset.tab;
         if (!tabName) return;
         document.querySelectorAll('.tab-content').forEach(tc => tc.classList.add('hidden'));
@@ -335,17 +345,10 @@
         localStorage.setItem('activeTab', tabName);
     });
 
-    // Inicialização
     document.addEventListener('DOMContentLoaded', () => {
-        handleFormSubmit(document.getElementById('form-cliente'), 'clientes', 'Cliente salvo!');
-        handleFormSubmit(document.getElementById('form-servico'), 'servicos', 'Serviço salvo!');
-        handleFormSubmit(document.getElementById('form-orcamento'), 'orcamentos', 'Orçamento salvo!');
-
         const urlParams = new URLSearchParams(window.location.search);
-        const activeTab = urlParams.get('tab') || localStorage.getItem('activeTab') || 'clientes';
-        
-        document.querySelector(`button[data-tab="${activeTab}"]`)?.click();
-        
+        const activeTab = urlParams.get('tab') || localStorage.getItem('activeTab') || 'historico'; // Aba padrão é Histórico
+        document.querySelector(`button[data-tab="${activeTab}"]`).click();
         fetchDataAndRender();
     });
 </script>
