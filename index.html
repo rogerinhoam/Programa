@@ -3,49 +3,71 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>R.M. Estética Automotiva - Gestão</title>
+    <title>R.M. Estética Automotiva - Gestão Local</title>
+    
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#d32f2f">
+    <link rel="apple-touch-icon" href="icon-192x192.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://unpkg.com/dexie@3/dist/dexie.js"></script>
+    
     <style>
-      :root { --bg-primary: #121212; --bg-secondary: #1A1A1A; --bg-tertiary: #2a2a2a; --accent-primary: #d32f2f; --text-primary: #e0e0e0; --text-secondary: #b0b0b0; --border-color: rgba(255, 255, 255, 0.1); --border-radius: 12px; }
+      :root {
+        --bg-primary: #121212; --bg-secondary: #1E1E1E; --bg-tertiary: #2a2a2a;
+        --accent-primary: #d32f2f; --accent-secondary: #ff5252; --text-primary: #e0e0e0; --text-secondary: #b0b0b0;
+        --border-color: rgba(255, 255, 255, 0.1); --shadow-color: rgba(0, 0, 0, 0.2); --font-family: 'Inter', sans-serif;
+        --border-radius: 12px; --transition-speed: 0.3s ease;
+      }
+      @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
       * { box-sizing: border-box; }
       body { background: var(--bg-primary); color: var(--text-primary); font-family: var(--font-family); margin: 0; }
-      header { background: var(--accent-primary); color: #fff; padding: 16px; text-align: center; font-size: 1.5rem; font-weight: 700; }
-      nav { display: flex; background: #1a1a1a; justify-content: center; align-items: center; padding: 8px; flex-wrap: wrap; border-bottom: 1px solid var(--border-color); }
-      nav button { background: transparent; color: var(--text-secondary); border: none; padding: 12px 18px; cursor: pointer; font-weight: 600; border-radius: 8px; transition: 0.3s ease; }
+      header { background: var(--accent-primary); color: #fff; padding: 16px 20px; text-align: center; font-size: clamp(1.25rem, 4vw, 1.5rem); font-weight: 700; }
+      nav { display: flex; background: #1a1a1a; justify-content: center; flex-wrap: wrap; border-bottom: 1px solid var(--border-color); }
+      nav button { background: transparent; color: var(--text-secondary); border: none; padding: 15px 20px; cursor: pointer; font-weight: 600; }
       nav button.active { color: var(--text-primary); background: var(--accent-primary); }
-      #sync-button { margin-left: auto; padding: 8px; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; }
       main { padding: 20px 15px; max-width: 900px; margin: auto; }
+      .tab-content { display: none; }
+      .tab-content.active { display: block; animation: fadeIn 0.5s ease-in-out; }
       .card { background: var(--bg-secondary); padding: 25px; border-radius: var(--border-radius); margin-bottom: 30px; border: 1px solid var(--border-color); }
-      form label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-secondary); font-size: 0.9rem; }
+      form label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-secondary); }
       form input, form select { width: 100%; padding: 12px 15px; margin-bottom: 18px; border: 1px solid var(--border-color); background-color: var(--bg-tertiary); color: var(--text-primary); border-radius: 8px; font-size: 1rem; }
-      .btn { background: var(--accent-primary); color: #fff; border: none; width: 100%; padding: 14px; cursor: pointer; font-weight: 700; font-size: 1rem; border-radius: 8px; }
-      .btn:disabled { background-color: #555; }
+      form input:focus, form select:focus { outline: none; border-color: var(--accent-primary); }
+      .btn-primary { background: var(--accent-primary); color: #fff; border: none; width: 100%; padding: 14px; cursor: pointer; font-weight: 700; font-size: 1rem; border-radius: 8px; transition: var(--transition-speed); }
+      .btn-primary:hover { background: var(--accent-secondary); transform: translateY(-2px); }
+      .btn-primary:disabled { background-color: #555; }
       .item-list { list-style: none; padding: 0; margin-top: 20px; }
       .item-list li { padding: 15px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; }
       .item-list li:last-child { border-bottom: none; }
       .item-actions button { background: none; border: none; padding: 8px; cursor: pointer; color: var(--text-secondary); }
       .item-actions svg { width: 20px; height: 20px; stroke: currentColor; }
-      .hidden { display: none; }
+      .checkbox-group { margin-bottom: 20px; }
+      .checkbox-container { display: flex; flex-wrap: wrap; gap: 20px; }
+      #lista-historico li { cursor: pointer; }
+      #lista-historico li.selected { border-left: 4px solid var(--accent-primary); background-color: var(--bg-tertiary); }
+      #historico-details { margin-top: 20px; }
+      #historico-texto { white-space: pre-wrap; background: var(--bg-tertiary); padding: 20px; border-radius: var(--border-radius); font-family: 'SF Mono', 'Courier New', monospace; font-size: 0.85rem; line-height: 1.6; }
+      .btn-group { margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+      .status-badge { padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; color: #fff; }
+      .status-Orçamento { background-color: #5bc0de; } .status-Aprovado { background-color: #f0ad4e; } .status-Finalizado { background-color: #5cb85c; }
       #orcamento-servicos-lista { border: 1px solid var(--border-color); border-radius: 8px; margin: 10px 0; padding: 0; }
       #orcamento-servicos-lista li { background: var(--bg-tertiary); }
       #orcamento-total { text-align: right; font-size: 1.2rem; font-weight: bold; margin: 20px 0; }
-      .status-badge { padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; color: #fff; }
-      .status-Orçamento { background-color: #5bc0de; } .status-Aprovado { background-color: #f0ad4e; }
-      .status-Finalizado { background-color: #5cb85c; } .status-Cancelado { background-color: #d9534f; }
+      .toast-container { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 3000; }
+      .toast { padding: 15px 20px; border-radius: 8px; color: white; font-weight: 600; }
     </style>
 </head>
 <body>
 
-<header>R.M. ESTÉTICA AUTOMOTIVA</header>
+<header>R.M. ESTÉTICA AUTOMOTIVA (Versão Local)</header>
 <nav>
   <button data-tab="clientes">Clientes</button>
   <button data-tab="servicos">Serviços</button>
   <button data-tab="orcamentos">Novo Orçamento</button>
   <button data-tab="historico">Histórico</button>
-  <button id="sync-button" title="Sincronizar Dados"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg></button>
 </nav>
 
 <main id="main-container">
@@ -55,63 +77,333 @@
   <section id="historico" class="tab-content card hidden"></section>
 </main>
 
-<script type="module">
-    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+<div id="toast-container"></div>
 
-    // --- CÁPSULA DE SEGURANÇA: NADA ACONTECE ANTES DO HTML ESTAR PRONTO ---
-    document.addEventListener('DOMContentLoaded', () => {
+<script>
+// --- CÁPSULA DE SEGURANÇA: NADA RODA ANTES DO HTML ESTAR 100% PRONTO ---
+document.addEventListener('DOMContentLoaded', () => {
+    const { jsPDF } = window.jspdf;
+    const db = new Dexie("RM_Estetica_DB_Final");
 
-        const supabaseUrl = 'https://zkdfimbfwgofkmmcvyfu.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InprZGZpbWJmd2dvZmttbWN2eWZ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA2MzQxMTksImV4cCI6MjA2NjIxMDExOX0.vOTrEVYX30FpWPQykY5CF1QCfkyG5gDLnI_2N9TATRE';
-        const supabase = createClient(supabaseUrl, supabaseKey);
-
-        const state = { clientes: [], servicos: [], orcamentos: [], servicosNoOrcamento: [] };
-
-        const mainContainer = document.getElementById('main-container');
-
-        // --- FUNÇÃO PARA MOSTRAR ABAS ---
-        function showTab(tabName) {
-            mainContainer.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
-            document.getElementById(tabName)?.classList.remove('hidden');
-            document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-            document.querySelector(`nav button[data-tab="${tabName}"]`)?.classList.add('active');
-            localStorage.setItem('activeTab', tabName);
-        }
-
-        // --- FUNÇÕES DE RENDERIZAÇÃO ---
-        function renderClientes() {
-            const container = document.getElementById('clientes');
-            container.innerHTML = `
-                <form id="form-cliente">
-                  <input type="hidden" name="id" />
-                  <label>Nome</label><input type="text" name="nome" required />
-                  <label>Telefone</label><input type="tel" name="telefone" />
-                  <label>Veículo</label><input type="text" name="carro" />
-                  <label>Placa</label><input type="text" name="placa" />
-                  <button type="submit" class="btn">Salvar Cliente</button>
-                </form>
-                <ul class="item-list">${state.clientes.map(c => `<li data-id="${c.id}"><div>${c.nome}</div><div class="item-actions"><button onclick="editItem('clientes', ${c.id})">✏️</button><button onclick="deleteItem('clientes', ${c.id})">🗑️</button></div></li>`).join('') || '<li>Nenhum cliente.</li>'}</ul>
-            `;
-            document.getElementById('form-cliente').addEventListener('submit', handleFormSubmit);
-        }
-        
-        // ... (outras funções de renderização e handlers)
-
-        // --- INICIALIZAÇÃO ---
-        async function init() {
-            console.log("App inicializando...");
-            await loadDataAndRender();
-            
-            const activeTab = localStorage.getItem('activeTab') || 'clientes';
-            showTab(activeTab);
-            
-            document.querySelector('nav').addEventListener('click', e => {
-                if (e.target.dataset.tab) showTab(e.target.dataset.tab);
-            });
-        }
-        
-        init();
+    // --- 1. DEFINIÇÃO E INICIALIZAÇÃO DO BANCO DE DADOS LOCAL ---
+    db.version(1).stores({
+        clientes: '++id, nome',
+        servicos: '++id, descricao',
+        orcamentos: '++id, cliente_id, created_at, status'
     });
+
+    const state = {
+        clientes: [],
+        servicos: [],
+        orcamentos: [],
+        servicosNoOrcamento: [],
+        orcamentoAtual: null
+    };
+    
+    const icons = { edit: `✏️`, delete: `🗑️` };
+
+    // --- 2. FUNÇÕES UTILITÁRIAS E DE RENDERIZAÇÃO ---
+    function showToast(message) {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.textContent = message;
+        toast.style.backgroundColor = '#28a745';
+        container.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+
+    async function populateInitialServices() {
+        const count = await db.servicos.count();
+        if (count === 0) {
+            await db.servicos.bulkAdd([
+                { descricao: 'Polimento Técnico', valor: 300.00 },
+                { descricao: 'Vitrificação de Pintura (1 Ano)', valor: 900.00 },
+                { descricao: 'Higienização Interna Completa', valor: 450.00 },
+                { descricao: 'Impermeabilização de Bancos', valor: 250.00 },
+                { descricao: 'Limpeza Técnica de Motor', valor: 200.00 },
+                { descricao: 'Polimento de Faróis (Par)', valor: 120.00 },
+                { descricao: 'Lavagem Detalhada', valor: 100.00 }
+            ]);
+        }
+    }
+
+    function renderAll() {
+        renderClientes();
+        renderServicos();
+        renderOrcamentos();
+        renderHistorico();
+    }
+
+    function renderClientes() {
+        const container = document.getElementById('clientes');
+        container.innerHTML = `
+            <h3>Clientes</h3>
+            <form id="form-cliente">
+              <input type="hidden" name="id" />
+              <label>Nome</label><input type="text" name="nome" required />
+              <label>Telefone</label><input type="tel" name="telefone" />
+              <label>Veículo</label><input type="text" name="carro" />
+              <label>Placa</label><input type="text" name="placa" />
+              <button type="submit" class="btn-primary">Salvar Cliente</button>
+            </form>
+            <ul class="item-list">${state.clientes.map(c => `<li data-id="${c.id}"><div class="item-info">${c.nome}</div><div class="item-actions"><button data-action="edit" data-type="clientes">${icons.edit}</button><button data-action="delete" data-type="clientes">${icons.delete}</button></div></li>`).join('') || '<li>Nenhum cliente.</li>'}</ul>`;
+        document.getElementById('form-cliente').addEventListener('submit', handleFormSubmit);
+    }
+    
+    function renderServicos() {
+        const container = document.getElementById('servicos');
+        container.innerHTML = `
+            <h3>Serviços</h3>
+            <form id="form-servico">
+              <input type="hidden" name="id" />
+              <label>Descrição</label><input type="text" name="descricao" required />
+              <label>Valor (R$)</label><input type="number" step="0.01" name="valor" required />
+              <button type="submit" class="btn-primary">Salvar Serviço</button>
+            </form>
+            <ul class="item-list">${state.servicos.map(s => `<li data-id="${s.id}"><div class="item-info">${s.descricao} - R$${s.valor.toFixed(2)}</div><div class="item-actions"><button data-action="edit" data-type="servicos">${icons.edit}</button><button data-action="delete" data-type="servicos">${icons.delete}</button></div></li>`).join('') || '<li>Nenhum serviço.</li>'}</ul>`;
+        document.getElementById('form-servico').addEventListener('submit', handleFormSubmit);
+    }
+    
+    function renderOrcamentos() {
+        const container = document.getElementById('orcamentos');
+        container.innerHTML = `
+            <h3>Novo Orçamento</h3>
+            <form id="form-orcamento">
+              <label>Cliente</label><select name="cliente_id" required>${state.clientes.map(c => `<option value="${c.id}">${c.nome}</option>`).join('')}</select>
+              <div style="display: flex; gap: 10px; align-items: flex-end; margin-bottom: 18px;">
+                <div style="flex-grow: 1;"><label>Adicionar Serviço</label><select id="servico-para-adicionar">${state.servicos.map(s => `<option value="${s.id}">${s.descricao}</option>`).join('')}</select></div>
+                <button type="button" id="btn-add-servico" class="btn-primary" style="width: auto; padding: 12px 20px;">+</button>
+              </div>
+              <div id="orcamento-servicos-adicionados"><label>Serviços no Orçamento</label><ul id="orcamento-servicos-lista" class="item-list"></ul></div>
+              <label>Desconto (%)</label><input type="number" name="desconto" value="0" min="0" max="100" />
+              <div class="checkbox-group"><label>Formas de Pagamento</label><div class="checkbox-container">
+                  <div class="checkbox-item"><input type="checkbox" name="pagamento" value="Pix"><span>Pix</span></div>
+                  <div class="checkbox-item"><input type="checkbox" name="pagamento" value="Dinheiro"><span>Dinheiro</span></div>
+                  <div class="checkbox-item"><input type="checkbox" name="pagamento" value="Crédito"><span>Crédito</span></div>
+              </div></div>
+              <div id="orcamento-total">Total: R$ 0.00</div>
+              <button type="submit" class="btn-primary" style="margin-top: 20px;">Salvar Orçamento</button>
+            </form>`;
+        document.getElementById('form-orcamento').addEventListener('submit', handleOrcamentoSubmit);
+        document.getElementById('btn-add-servico').addEventListener('click', handleAddServico);
+        document.getElementById('orcamento-servicos-lista').addEventListener('click', handleRemoveServico);
+        document.querySelector('#form-orcamento [name="desconto"]').addEventListener('input', calcularTotalOrcamento);
+    }
+    
+    function renderHistorico() {
+        const container = document.getElementById('historico');
+        container.innerHTML = `
+            <h3>Histórico de Orçamentos</h3>
+            <ul id="lista-historico" class="item-list">${state.orcamentos.map(o => {
+                const statusClass = `status-${o.status.replace(/\s+/g, '-')}`;
+                return `<li data-id="${o.id}"><div class="item-info"><strong>${o.cliente.nome}</strong> - R$ ${o.valor_total.toFixed(2)}</div><span class="status-badge ${statusClass}">${o.status}</span></li>`;
+            }).join('') || '<li>Nenhum histórico.</li>'}</ul>
+            <div id="historico-details" class="card hidden">
+              <pre id="historico-texto"></pre>
+              <div id="status-controls" class="btn-group"></div>
+              <div class="btn-group"><button id="btn-gerar-orcamento-pdf">PDF Orçamento</button><button id="btn-gerar-recibo-pdf">PDF Recibo</button></div>
+              <div style="text-align:center; margin-top:20px;"><button id="btn-delete-orcamento" style="background:none;color:var(--text-secondary);border:none;cursor:pointer;">Excluir Orçamento</button></div>
+            </div>`;
+        document.getElementById('lista-historico').addEventListener('click', handleSelectHistorico);
+    }
+    
+    // --- LÓGICA DE INTERAÇÃO E MANIPULAÇÃO DE DADOS ---
+    async function loadAllData() {
+        const [clientes, servicos, orcamentos] = await Promise.all([
+            db.clientes.toArray(),
+            db.servicos.toArray(),
+            db.orcamentos.orderBy('created_at').reverse().toArray()
+        ]);
+        
+        for(const orc of orcamentos) {
+            orc.cliente = clientes.find(c => c.id === orc.cliente_id);
+        }
+        state.clientes = clientes;
+        state.servicos = servicos;
+        state.orcamentos = orcamentos;
+        renderAll();
+    }
+    
+    async function handleFormSubmit(e) {
+        e.preventDefault();
+        const form = e.target;
+        const tableName = form.id.split('-')[1] + 's';
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+        const id = parseInt(data.id);
+        delete data.id;
+
+        // Converte valor para número antes de salvar
+        if(data.valor) data.valor = parseFloat(data.valor);
+
+        if (id) {
+            await db[tableName].update(id, data);
+        } else {
+            await db[tableName].add(data);
+        }
+        form.reset();
+        showToast(`${tableName.slice(0, -1)} salvo!`);
+        await loadAllData();
+    }
+    
+    function handleAddServico() {
+        const select = document.getElementById('servico-para-adicionar');
+        const servicoId = parseInt(select.value);
+        if (!servicoId || servicosNoOrcamento.some(s => s.id === servicoId)) return;
+        
+        const servico = state.servicos.find(s => s.id === servicoId);
+        servicosNoOrcamento.push(servico);
+        renderServicosNoOrcamento();
+    }
+    
+    function handleRemoveServico(e) {
+        if (e.target.dataset.action === 'remove-servico') {
+            const servicoId = parseInt(e.target.closest('li').dataset.id);
+            servicosNoOrcamento = servicosNoOrcamento.filter(s => s.id !== servicoId);
+            renderServicosNoOrcamento();
+        }
+    }
+    
+    function renderServicosNoOrcamento() {
+        const lista = document.getElementById('orcamento-servicos-lista');
+        lista.innerHTML = servicosNoOrcamento.map(s => `<li data-id="${s.id}"><div>${s.descricao}</div><span>R$ ${s.valor.toFixed(2)}</span><button type="button" data-action="remove-servico">&times;</button></li>`).join('');
+        calcularTotalOrcamento();
+    }
+    
+    function calcularTotalOrcamento() {
+        const subtotal = servicosNoOrcamento.reduce((acc, s) => acc + s.valor, 0);
+        const desconto = parseFloat(document.querySelector('#form-orcamento [name="desconto"]').value) || 0;
+        const total = subtotal * (1 - desconto / 100);
+        document.getElementById('orcamento-total').textContent = `Total: R$ ${total.toFixed(2)}`;
+    }
+    
+    async function handleOrcamentoSubmit(e) {
+        e.preventDefault();
+        if (servicosNoOrcamento.length === 0) { showToast('Adicione pelo menos um serviço.'); return; }
+        
+        const form = e.target;
+        const formData = new FormData(form);
+        const subtotal = servicosNoOrcamento.reduce((acc, s) => acc + s.valor, 0);
+        const desconto = parseFloat(formData.get('desconto')) || 0;
+        
+        const newOrcamento = {
+            cliente_id: parseInt(formData.get('cliente_id')),
+            servicos: servicosNoOrcamento, // Armazena o array de serviços completo
+            desconto,
+            valor_total: subtotal * (1 - desconto / 100),
+            formas_pagamento: Array.from(form.querySelectorAll('input[name="pagamento"]:checked')).map(cb => cb.value).join(', '),
+            status: 'Orçamento',
+            created_at: new Date()
+        };
+        
+        await db.orcamentos.add(newOrcamento);
+        showToast('Orçamento salvo!');
+        form.reset();
+        servicosNoOrcamento = [];
+        renderServicosNoOrcamento();
+        await loadAllData();
+        showTab('historico');
+    }
+    
+    async function handleSelectHistorico(e) {
+        const li = e.target.closest('li');
+        if (!li) return;
+        
+        document.querySelectorAll('#lista-historico li').forEach(item => item.classList.remove('selected'));
+        li.classList.add('selected');
+        
+        const id = parseInt(li.dataset.id);
+        orcamentoAtual = await db.orcamentos.get(id);
+        orcamentoAtual.cliente = await db.clientes.get(orcamentoAtual.cliente_id);
+        
+        renderHistoricoDetails();
+    }
+    
+    function renderHistoricoDetails() {
+        if (!orcamentoAtual) return;
+        
+        const { cliente, servicos, desconto, valor_total, formas_pagamento, created_at, status } = orcamentoAtual;
+        const detailsDiv = document.getElementById('historico-details');
+        detailsDiv.classList.remove('hidden');
+        
+        const servicosListados = servicos.map(s => `- ${s.descricao} (R$ ${s.valor.toFixed(2)})`).join('\n');
+        const subTotal = servicos.reduce((acc, s) => acc + s.valor, 0);
+
+        const textoOrcamento = `Orçamento R.M. Estética\n========================\nData: ${new Date(created_at).toLocaleString('pt-BR')}\nCliente: ${cliente.nome}\n\nServiços:\n${servicosListados}\n\nSubtotal: R$ ${subTotal.toFixed(2)}\nDesconto: ${desconto}%\nTotal: R$ ${valor_total.toFixed(2)}\nPagamento: ${formas_pagamento || 'N/A'}`;
+        const textoRecibo = `Recibo de Serviço\n========================\nData: ${new Date().toLocaleDateString('pt-BR')}\nCliente: ${cliente.nome}\n\nServiço(s) Realizado(s):\n${servicosListados}\n\nValor Pago: R$ ${valor_total.toFixed(2)}`;
+        
+        document.getElementById('historico-texto').textContent = textoOrcamento;
+        
+        document.getElementById('btn-gerar-orcamento-pdf').onclick = () => new jsPDF().text(textoOrcamento, 10, 10).save('orcamento.pdf');
+        document.getElementById('btn-gerar-recibo-pdf').onclick = () => new jsPDF().text(textoRecibo, 10, 10).save('recibo.pdf');
+        document.getElementById('btn-delete-orcamento').onclick = async () => {
+            if(confirm('Excluir este orçamento?')) {
+                await db.orcamentos.delete(orcamentoAtual.id);
+                showToast('Orçamento excluído.');
+                detailsDiv.classList.add('hidden');
+                await loadAllData();
+            }
+        };
+        
+        const statusControls = document.getElementById('status-controls');
+        statusControls.innerHTML = '';
+        const statusMap = { 'Orçamento': 'Aprovado', 'Aprovado': 'Finalizado' };
+        if (statusMap[status]) {
+            const btn = document.createElement('button');
+            btn.className = 'btn-primary';
+            btn.textContent = `Marcar como ${statusMap[status]}`;
+            btn.onclick = async () => {
+                await db.orcamentos.update(orcamentoAtual.id, { status: statusMap[status] });
+                showToast('Status atualizado!');
+                detailsDiv.classList.add('hidden');
+                await loadAllData();
+            };
+            statusControls.appendChild(btn);
+        }
+    }
+    
+    // --- LÓGICA DE NAVEGAÇÃO E AÇÕES GLOBAIS ---
+    window.app = {
+        async editItem(tableName, id) {
+            const item = await db[tableName].get(id);
+            const form = document.getElementById(`form-${tableName.slice(0, -1)}`);
+            form.querySelector('input[name="id"]').value = item.id;
+            for(const key in item) { if(form[key]) form[key].value = item[key]; }
+            showTab(tableName);
+        },
+        async deleteItem(tableName, id) {
+            if(confirm(`Excluir este item?`)) {
+                if (tableName === 'clientes' || tableName === 'servicos') {
+                    const orcamentosRelacionados = await db.orcamentos.where(tableName === 'clientes' ? 'cliente_id' : 'servico_id').equals(id).count();
+                    if (orcamentosRelacionados > 0 && !confirm(`Este item está sendo usado em ${orcamentosRelacionados} orçamento(s). Excluir mesmo assim?`)) {
+                        return;
+                    }
+                }
+                await db[tableName].delete(id);
+                showToast('Item excluído!');
+                await loadAllData();
+            }
+        }
+    };
+    
+    // --- INICIALIZAÇÃO DA APLICAÇÃO ---
+    async function main() {
+        await db.open();
+        await populateInitialServices();
+        await loadAllData();
+        
+        const activeTab = localStorage.getItem('activeTab') || 'clientes';
+        showTab(activeTab);
+        
+        document.querySelector('nav').addEventListener('click', e => {
+            if (e.target.dataset.tab) showTab(e.target.dataset.tab);
+        });
+    }
+    
+    main().catch(err => console.error(err));
+});
 </script>
+
 </body>
 </html>
