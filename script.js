@@ -1,8 +1,9 @@
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
 
 const supabase = createClient(
   'https://zkdfimbfwgofkmmcvyfu.supabase.co',
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InprZGZpbWJmd2dvZmttbWN2eWZ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA2MzQxMTksImV4cCI6MjA2NjIxMDExOX0.vOTrEVYX30FpWPQykY5CF1QCfkyG5gDLnI_2N9TATRE'
+
 );
 
 // --- Clientes ---
@@ -131,180 +132,47 @@ window.salvarServico = async () => {
       alert('Erro ao salvar serviço: ' + error.message);
       return;
     }
-    alert('Serviço salvo!');
-  }
+    alert('Serviço salvo!');import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-  limparFormServico();
-  listarServicos();
-  carregarServicosNoOrcamento();
-};
+const supabaseUrl = 'https://zkdfimbfwgofkmmcvyfu.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'; // sua chave completa aqui
+const supabase = createClient(supabaseUrl, supabaseKey);
 
-window.editarServico = (id, descricao, valor) => {
-  document.getElementById('servicoId').value = id;
-  document.getElementById('descricao').value = descricao;
-  document.getElementById('valor').value = valor;
-};
+// CADASTRO CLIENTE
+document.getElementById('formCliente').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const nome = document.getElementById('nome').value;
+  const telefone = document.getElementById('telefone').value;
 
-window.excluirServico = async (id) => {
-  if (!confirm('Quer mesmo excluir este serviço?')) return;
-  const { error } = await supabase.from('servicos').delete().eq('id', id);
-  if (error) {
-    alert('Erro ao excluir serviço: ' + error.message);
-    return;
-  }
-  alert('Serviço excluído!');
-  listarServicos();
-  carregarServicosNoOrcamento();
-};
+  const { data, error } = await supabase.from('clientes').insert([{ nome, telefone }]);
+  if (error) return alert('Erro ao salvar cliente');
+  alert('Cliente salvo!');
+  listarClientes();
+  carregarClientesNoOrcamento();
+  e.target.reset();
+});
 
-// --- Orçamentos ---
-
-async function listarOrcamentos() {
-  const div = document.getElementById('listaOrcamentos');
-  div.innerHTML = 'Carregando orçamentos...';
-  const { data, error } = await supabase.from('orcamentos').select().order('criado_em', { ascending: false });
-  if (error) {
-    div.innerHTML = `Erro: ${error.message}`;
-    return;
-  }
-  if (!data.length) {
-    div.innerHTML = 'Nenhum orçamento cadastrado.';
-    return;
-  }
-  div.innerHTML = '';
-  data.forEach(o => {
-    const dt = new Date(o.criado_em);
-    const dtFormat = dt.toLocaleString('pt-BR');
-    const el = document.createElement('div');
-    el.className = 'entrada-lista';
-    el.innerHTML = `
-      <div class="entrada-texto">
-        <b>${o.cliente}</b> - ${o.servico} - R$ ${o.total.toFixed(2)}<br/>
-        <small>${dtFormat}</small><br/>
-        <small>Pagamento: ${o.forma}</small>
-      </div>
-      <button class="btn-excluir" onclick="excluirOrcamento('${o.id}')">Excluir</button>
-    `;
-    div.appendChild(el);
+// LISTAGEM CLIENTES
+async function listarClientes() {
+  const { data, error } = await supabase.from('clientes').select('*');
+  const container = document.getElementById('listaClientes');
+  container.innerHTML = '';
+  data.forEach((cliente) => {
+    const div = document.createElement('div');
+    div.className = 'p-2 bg-white border rounded flex justify-between';
+    div.innerHTML = `<span>${cliente.nome} - ${cliente.telefone}</span>`;
+    container.appendChild(div);
   });
 }
-
-window.excluirOrcamento = async (id) => {
-  if (!confirm('Quer mesmo excluir este orçamento?')) return;
-  const { error } = await supabase.from('orcamentos').delete().eq('id', id);
-  if (error) {
-    alert('Erro ao excluir orçamento: ' + error.message);
-    return;
-  }
-  alert('Orçamento excluído!');
-  listarOrcamentos();
-};
-
-// --- Gerar Orçamento ---
 
 async function carregarClientesNoOrcamento() {
-  const sel = document.getElementById('clienteSelect');
-  sel.innerHTML = '<option value="">Selecione um cliente</option>';
-  const { data, error } = await supabase.from('clientes').select().order('nome');
-  if (error) {
-    alert('Erro ao carregar clientes: ' + error.message);
-    return;
-  }
-  data.forEach(c => sel.add(new Option(c.nome, c.id)));
-}
-
-async function carregarServicosNoOrcamento() {
-  const sel = document.getElementById('servicoSelect');
-  sel.innerHTML = '<option value="">Selecione um serviço</option>';
-  const { data, error } = await supabase.from('servicos').select().order('descricao');
-  if (error) {
-    alert('Erro ao carregar serviços: ' + error.message);
-    return;
-  }
-  data.forEach(s => sel.add(new Option(s.descricao, s.id)));
-}
-
-window.gerarOrcamento = async () => {
-  const clienteId = document.getElementById('clienteSelect').value;
-  const servicoId = document.getElementById('servicoSelect').value;
-  const forma = document.getElementById('formaPagamento').value;
-
-  if (!clienteId || !servicoId) {
-    alert('Selecione cliente e serviço.');
-    return;
-  }
-
-  const { data: cliente, error: errCli } = await supabase.from('clientes').select().eq('id', clienteId).single();
-  const { data: servico, error: errServ } = await supabase.from('servicos').select().eq('id', servicoId).single();
-
-  if (errCli || errServ) {
-    alert('Erro ao buscar dados: ' + (errCli?.message || errServ?.message));
-    return;
-  }
-
-  const taxa = 20;
-  const total = parseFloat(servico.valor) + taxa;
-
-  const cupom = `
-=============================
-    R.M. Estética Automotiva
-=============================
-Cliente: ${cliente.nome}
-Telefone: ${cliente.telefone}
-Serviço: ${servico.descricao}
-Valor: R$ ${servico.valor.toFixed(2)}
-Taxa: R$ ${taxa.toFixed(2)}
-Total: R$ ${total.toFixed(2)}
-Forma de Pagamento: ${forma}
-=============================
-  `;
-
-  document.getElementById('cupom').innerText = cupom;
-
-  const { error } = await supabase.from('orcamentos').insert({
-    cliente: cliente.nome,
-    telefone: cliente.telefone,
-    servico: servico.descricao,
-    valor: servico.valor,
-    taxa,
-    total,
-    forma
+  const { data } = await supabase.from('clientes').select('*');
+  const select = document.getElementById('clienteSelect');
+  select.innerHTML = '<option value=\"\">Selecione um cliente</option>';
+  data.forEach(cli => {
+    const opt = document.createElement('option');
+    opt.value = cli.id;
+    opt.textContent = cli.nome;
+    select.appendChild(opt);
   });
-
-  if (error) {
-    alert('Erro ao salvar orçamento: ' + error.message);
-  } else {
-    alert('Orçamento salvo!');
-    listarOrcamentos();
-
-    // Abrir WhatsApp para enviar cupom
-    const telefoneLimpo = cliente.telefone.replace(/\D/g, '');
-    window.open(`https://wa.me/55${telefoneLimpo}?text=${encodeURIComponent(cupom)}`, '_blank');
-  }
-};
-
-window.limparFormCliente = () => {
-  document.getElementById('clienteId').value = '';
-  document.getElementById('nome').value = '';
-  document.getElementById('telefone').value = '';
-};
-
-window.limparFormServico = () => {
-  document.getElementById('servicoId').value = '';
-  document.getElementById('descricao').value = '';
-  document.getElementById('valor').value = '';
-};
-
-window.onload = () => {
-  listarClientes();
-  listarServicos();
-  listarOrcamentos();
-  carregarClientesNoOrcamento();
-  carregarServicosNoOrcamento();
-};
-
-window.mostrarAba = (nome) => {
-  document.querySelectorAll('.aba').forEach(sec => {
-    sec.style.display = sec.id === nome ? 'block' : 'none';
-  });
-};
+}
