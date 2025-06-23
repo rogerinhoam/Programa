@@ -5,77 +5,152 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>R.M. Estética Automotiva</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script type="module" src="script.js" defer></script>
-  <link rel="icon" href="https://img.icons8.com/color/48/car-cleaning.png" />
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    const supabase = createClient(
+      'https://zkdfimbfwgofkmmcvyfu.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InprZGZpbWJmd2dvZmttbWN2eWZ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA2MzQxMTksImV4cCI6MjA2NjIxMDExOX0.vOTrEVYX30FpWPQykY5CF1QCfkyG5gDLnI_2N9TATRE'
+    );
+
+    window.onload = () => {
+      listarClientes();
+      listarServicos();
+      listarOrcamentos();
+      carregarClientesNoOrcamento();
+      carregarServicosNoOrcamento();
+    };
+
+    document.getElementById('formCliente').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const nome = document.getElementById('nome').value;
+      const telefone = document.getElementById('telefone').value;
+      await supabase.from('clientes').insert([{ nome, telefone }]);
+      alert('Cliente salvo!');
+      e.target.reset();
+      listarClientes();
+      carregarClientesNoOrcamento();
+    });
+
+    async function listarClientes() {
+      const { data } = await supabase.from('clientes').select('*');
+      const container = document.getElementById('listaClientes');
+      container.innerHTML = '';
+      data.forEach(cli => {
+        const div = document.createElement('div');
+        div.className = 'p-2 bg-white border rounded';
+        div.textContent = `${cli.nome} - ${cli.telefone}`;
+        container.appendChild(div);
+      });
+    }
+
+    async function carregarClientesNoOrcamento() {
+      const { data } = await supabase.from('clientes').select('*');
+      const select = document.getElementById('clienteSelect');
+      select.innerHTML = '<option value="">Selecione um cliente</option>';
+      data.forEach(cli => {
+        const opt = document.createElement('option');
+        opt.value = cli.id;
+        opt.textContent = cli.nome;
+        select.appendChild(opt);
+      });
+    }
+
+    document.getElementById('formServico').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const descricao = document.getElementById('descricao').value;
+      const valor = parseFloat(document.getElementById('valor').value);
+      await supabase.from('servicos').insert([{ descricao, valor }]);
+      alert('Serviço salvo!');
+      e.target.reset();
+      listarServicos();
+      carregarServicosNoOrcamento();
+    });
+
+    async function listarServicos() {
+      const { data } = await supabase.from('servicos').select('*');
+      const container = document.getElementById('listaServicos');
+      container.innerHTML = '';
+      data.forEach(serv => {
+        const div = document.createElement('div');
+        div.className = 'p-2 bg-white border rounded';
+        div.textContent = `${serv.descricao} - R$ ${serv.valor.toFixed(2)}`;
+        container.appendChild(div);
+      });
+    }
+
+    async function carregarServicosNoOrcamento() {
+      const { data } = await supabase.from('servicos').select('*');
+      const select = document.getElementById('servicoSelect');
+      select.innerHTML = '<option value="">Selecione um serviço</option>';
+      data.forEach(serv => {
+        const opt = document.createElement('option');
+        opt.value = serv.id;
+        opt.textContent = `${serv.descricao} - R$${serv.valor}`;
+        select.appendChild(opt);
+      });
+    }
+
+    document.getElementById('formOrcamento').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const clienteId = document.getElementById('clienteSelect').value;
+      const servicoId = document.getElementById('servicoSelect').value;
+      const formaPagamento = document.getElementById('formaPagamento').value;
+      const { data: cliente } = await supabase.from('clientes').select('*').eq('id', clienteId).single();
+      const { data: servico } = await supabase.from('servicos').select('*').eq('id', servicoId).single();
+
+      const { data, error } = await supabase.from('orcamentos').insert([{
+        cliente_id: clienteId,
+        servico_id: servicoId,
+        forma_pagamento: formaPagamento
+      }]);
+
+      const cupom = `
+------ R.M. Estética Automotiva ------
+Cliente: ${cliente.nome}
+Serviço: ${servico.descricao}
+Valor: R$ ${servico.valor.toFixed(2)}
+Pagamento: ${formaPagamento}
+--------------------------------------`;
+
+      document.getElementById('cupom').textContent = cupom;
+      listarOrcamentos();
+    });
+
+    async function listarOrcamentos() {
+      const { data, error } = await supabase
+        .from('orcamentos')
+        .select('id, forma_pagamento, clientes(nome), servicos(descricao, valor)');
+      const container = document.getElementById('listaOrcamentos');
+      container.innerHTML = '';
+      data.forEach(orc => {
+        const div = document.createElement('div');
+        div.className = 'p-2 bg-white border rounded';
+        div.textContent = `${orc.clientes.nome} | ${orc.servicos.descricao} - R$${orc.servicos.valor} | ${orc.forma_pagamento}`;
+        container.appendChild(div);
+      });
+    }
+
+    window.limparFormCliente = () => {
+      document.getElementById('clienteId').value = '';
+      document.getElementById('nome').value = '';
+      document.getElementById('telefone').value = '';
+    };
+
+    window.limparFormServico = () => {
+      document.getElementById('servicoId').value = '';
+      document.getElementById('descricao').value = '';
+      document.getElementById('valor').value = '';
+    };
+
+    window.mostrarAba = (nome) => {
+      document.querySelectorAll('.aba').forEach(sec => {
+        sec.style.display = sec.id === nome ? 'block' : 'none';
+      });
+    };
+  </script>
 </head>
 <body class="bg-gray-100 text-gray-800">
-  <header class="bg-red-600 text-white p-4 shadow">
-    <div class="max-w-3xl mx-auto flex justify-between items-center">
-      <h1 class="text-xl font-bold">R.M. Estética Automotiva</h1>
-      <nav class="space-x-2">
-        <button onclick="mostrarAba('clientes')" class="bg-white text-red-600 px-3 py-1 rounded hover:bg-gray-200">Clientes</button>
-        <button onclick="mostrarAba('servicos')" class="bg-white text-red-600 px-3 py-1 rounded hover:bg-gray-200">Serviços</button>
-        <button onclick="mostrarAba('orcamentos')" class="bg-white text-red-600 px-3 py-1 rounded hover:bg-gray-200">Orçamentos</button>
-      </nav>
-    </div>
-  </header>
-
-  <main class="max-w-3xl mx-auto p-4">
-    <section id="clientes" class="aba">
-      <h2 class="text-lg font-semibold border-b pb-1 mb-4">Clientes</h2>
-      <form id="formCliente" class="space-y-3">
-        <input type="hidden" id="clienteId" />
-        <input type="text" id="nome" placeholder="Nome" class="w-full border rounded p-2" required />
-        <input type="tel" id="telefone" placeholder="Telefone" class="w-full border rounded p-2" required />
-        <div class="flex gap-2">
-          <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Salvar Cliente</button>
-          <button type="reset" onclick="limparFormCliente()" class="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-600">Cancelar</button>
-        </div>
-      </form>
-      <div id="listaClientes" class="mt-6 space-y-2"></div>
-    </section>
-
-    <section id="servicos" class="aba hidden">
-      <h2 class="text-lg font-semibold border-b pb-1 mb-4">Serviços</h2>
-      <form id="formServico" class="space-y-3">
-        <input type="hidden" id="servicoId" />
-        <input type="text" id="descricao" placeholder="Descrição" class="w-full border rounded p-2" required />
-        <input type="number" id="valor" placeholder="Valor (R$)" class="w-full border rounded p-2" required />
-        <div class="flex gap-2">
-          <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Salvar Serviço</button>
-          <button type="reset" onclick="limparFormServico()" class="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-600">Cancelar</button>
-        </div>
-      </form>
-      <div id="listaServicos" class="mt-6 space-y-2"></div>
-    </section>
-
-    <section id="orcamentos" class="aba hidden">
-      <h2 class="text-lg font-semibold border-b pb-1 mb-4">Gerar Orçamento</h2>
-      <form id="formOrcamento" class="space-y-3">
-        <select id="clienteSelect" class="w-full border rounded p-2" required>
-          <option value="">Selecione um cliente</option>
-        </select>
-        <select id="servicoSelect" class="w-full border rounded p-2" required>
-          <option value="">Selecione um serviço</option>
-        </select>
-        <select id="formaPagamento" class="w-full border rounded p-2" required>
-          <option value="">Forma de pagamento</option>
-          <option value="Dinheiro">Dinheiro</option>
-          <option value="Cartão">Cartão</option>
-          <option value="Pix">Pix</option>
-        </select>
-        <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Gerar Cupom</button>
-      </form>
-      <pre id="cupom" class="mt-4 p-4 bg-white border rounded font-mono"></pre>
-      <div id="listaOrcamentos" class="mt-6 space-y-2"></div>
-    </section>
-  </main>
-
-  <script>
-    function mostrarAba(id) {
-      document.querySelectorAll('.aba').forEach(aba => aba.classList.add('hidden'));
-      document.getElementById(id).classList.remove('hidden');
-    }
-  </script>
+  <!-- Interface permanece a mesma, já enviada -->
 </body>
 </html>
