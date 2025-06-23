@@ -204,47 +204,47 @@
 <header>✨ R.M. Estética Automotiva ✨</header>
 
 <nav>
-  <button class="active" data-tab="clientes" aria-controls="clientes" aria-selected="true">👤 Clientes</button>
-  <button data-tab="servicos" aria-controls="servicos" aria-selected="false">🛠 Serviços</button>
-  <button data-tab="orcamento" aria-controls="orcamento" aria-selected="false">📋 Orçamento</button>
-  <button data-tab="historico" aria-controls="historico" aria-selected="false">📜 Histórico</button>
+  <button class="active" data-tab="clientes">👤 Clientes</button>
+  <button data-tab="servicos">🛠 Serviços</button>
+  <button data-tab="orcamento">📋 Orçamento</button>
+  <button data-tab="historico">📜 Histórico</button>
 </nav>
 
-<section id="clientes" class="active" role="tabpanel" tabindex="0" aria-labelledby="clientes-tab" aria-hidden="false">
+<section id="clientes" class="active" aria-label="Clientes">
   <h2>👤 Cadastro de Clientes</h2>
   <form id="form-clientes" autocomplete="off">
-    <input type="text" id="nome" name="nome" placeholder="Nome completo" required />
-    <input type="tel" id="telefone" name="telefone" placeholder="Telefone (opcional)" />
-    <input type="text" id="carro" name="carro" placeholder="Carro (opcional)" />
-    <input type="text" id="placa" name="placa" placeholder="Placa (opcional)" />
+    <input type="text" name="nome" placeholder="Nome completo" required />
+    <input type="tel" name="telefone" placeholder="Telefone (opcional)" />
+    <input type="text" name="carro" placeholder="Carro (opcional)" />
+    <input type="text" name="placa" placeholder="Placa (opcional)" />
     <button type="submit">Salvar Cliente 💾</button>
   </form>
-  <ul id="lista-clientes" aria-live="polite" aria-label="Lista de clientes"></ul>
+  <ul id="lista-clientes"></ul>
 </section>
 
-<section id="servicos" role="tabpanel" tabindex="0" aria-labelledby="servicos-tab" aria-hidden="true">
+<section id="servicos" aria-label="Serviços">
   <h2>🛠 Cadastro de Serviços</h2>
   <form id="form-servicos" autocomplete="off">
-    <input type="text" id="descricao" name="descricao" placeholder="Descrição do serviço" required />
-    <input type="number" id="valor" name="valor" placeholder="Valor R$" min="0" step="0.01" required />
+    <input type="text" name="descricao" placeholder="Descrição do serviço" required />
+    <input type="number" name="valor" placeholder="Valor R$" min="0" step="0.01" required />
     <button type="submit">Salvar Serviço 💾</button>
   </form>
-  <ul id="lista-servicos" aria-live="polite" aria-label="Lista de serviços"></ul>
+  <ul id="lista-servicos"></ul>
 </section>
 
-<section id="orcamento" role="tabpanel" tabindex="0" aria-labelledby="orcamento-tab" aria-hidden="true">
+<section id="orcamento" aria-label="Orçamento">
   <h2>📋 Gerar Orçamento</h2>
   <form id="form-orcamento" autocomplete="off">
-    <select id="select-cliente" name="select-cliente" required aria-label="Selecione cliente"></select>
-    <select id="select-servico" name="select-servico" required aria-label="Selecione serviço"></select>
-    <input type="number" id="desconto" name="desconto" placeholder="Desconto (%)" min="0" max="100" step="1" />
+    <select name="select-cliente" required aria-label="Selecione cliente"></select>
+    <select name="select-servico" required aria-label="Selecione serviço"></select>
+    <input type="number" name="desconto" placeholder="Desconto (%)" min="0" max="100" step="1" />
     <button type="submit">Salvar Orçamento 💾</button>
   </form>
 </section>
 
-<section id="historico" role="tabpanel" tabindex="0" aria-labelledby="historico-tab" aria-hidden="true">
+<section id="historico" aria-label="Histórico">
   <h2>📜 Histórico de Orçamentos</h2>
-  <ul id="lista-orcamentos" aria-live="polite" aria-label="Lista de orçamentos"></ul>
+  <ul id="lista-orcamentos"></ul>
   <pre id="orcamento-box" class="orcamento-box" aria-live="polite" aria-atomic="true"></pre>
   <div class="actions">
     <button id="btnSalvarOrcamento">Salvar Orçamento 💾</button>
@@ -266,39 +266,31 @@
   const sections = document.querySelectorAll('section');
   tabs.forEach(tab => {
     tab.addEventListener('click', () => {
-      tabs.forEach(t => {
-        t.classList.remove('active');
-        t.setAttribute('aria-selected', 'false');
-      });
+      tabs.forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
-      tab.setAttribute('aria-selected', 'true');
-
       const target = tab.dataset.tab;
       sections.forEach(s => {
         if (s.id === target) {
           s.classList.add('active');
-          s.setAttribute('aria-hidden', 'false');
-          s.focus();
         } else {
           s.classList.remove('active');
-          s.setAttribute('aria-hidden', 'true');
         }
       });
     });
   });
 
-  // Funções carregar dados
+  // Funções para carregar dados no frontend
   async function carregarClientes() {
     const { data, error } = await supabase.from('clientes').select('*').order('nome');
     if (error) { alert('Erro ao carregar clientes: ' + error.message); return; }
     const lista = document.getElementById('lista-clientes');
-    const select = document.getElementById('select-cliente');
+    const select = document.querySelector('select[name="select-cliente"]');
     lista.innerHTML = '';
     select.innerHTML = '<option value="" disabled selected>Selecione o cliente</option>';
     data.forEach(c => {
       lista.innerHTML += `
         <li>
-          <div>${c.nome} ${c.carro ? '- ' + c.carro : ''} ${c.placa ? '('+c.placa+')' : ''}</div>
+          <div>${c.nome} ${c.carro ? '- ' + c.carro : ''} ${c.placa ? '(' + c.placa + ')' : ''}</div>
           <button onclick="excluirCliente(${c.id})" aria-label="Excluir cliente ${c.nome}">❌</button>
         </li>`;
       select.innerHTML += `<option value="${c.id}">${c.nome}</option>`;
@@ -309,7 +301,7 @@
     const { data, error } = await supabase.from('servicos').select('*').order('descricao');
     if (error) { alert('Erro ao carregar serviços: ' + error.message); return; }
     const lista = document.getElementById('lista-servicos');
-    const select = document.getElementById('select-servico');
+    const select = document.querySelector('select[name="select-servico"]');
     lista.innerHTML = '';
     select.innerHTML = '<option value="" disabled selected>Selecione o serviço</option>';
     data.forEach(s => {
@@ -328,7 +320,6 @@
       clientes (id, nome, telefone, carro, placa),
       servicos (id, descricao, valor)
     `).order('created_at', { ascending: false });
-
     if (error) {
       alert('Erro ao carregar orçamentos: ' + error.message);
       return;
@@ -347,7 +338,6 @@
 Data: ${new Date(o.created_at).toLocaleString()}
 Cliente: ${o.clientes.nome}
 Carro: ${o.clientes.carro || '-'} (${o.clientes.placa || '-'})
-
 ------------------------------
 SERVIÇOS:
 - ${o.servicos.descricao}  R$ ${o.servicos.valor.toFixed(2)}
@@ -378,7 +368,7 @@ Rua 40, Travessa Recanto dos Pássaros
     document.getElementById('orcamento-box').textContent = texto;
   }
 
-  // Botões salvar/enviar
+  // Funções salvar e enviar (WhatsApp)
   function salvarTextoComoArquivo(texto, nomeArquivo) {
     const blob = new Blob([texto], {type: 'text/plain'});
     const link = document.createElement('a');
@@ -389,41 +379,42 @@ Rua 40, Travessa Recanto dos Pássaros
 
   document.getElementById('btnSalvarOrcamento').addEventListener('click', () => {
     const texto = document.getElementById('orcamento-box').textContent;
-    if(!texto) return alert('Visualize um orçamento antes de salvar!');
+    if (!texto) return alert('Visualize um orçamento antes de salvar!');
     salvarTextoComoArquivo(texto, 'orcamento.txt');
   });
 
   document.getElementById('btnEnviarOrcamento').addEventListener('click', () => {
     const texto = document.getElementById('orcamento-box').textContent;
-    if(!texto) return alert('Visualize um orçamento antes de enviar!');
+    if (!texto) return alert('Visualize um orçamento antes de enviar!');
     const url = `https://wa.me/?text=${encodeURIComponent(texto)}`;
     window.open(url, '_blank');
   });
 
   document.getElementById('btnSalvarCupom').addEventListener('click', () => {
     const texto = document.getElementById('orcamento-box').textContent;
-    if(!texto) return alert('Visualize um cupom antes de salvar!');
+    if (!texto) return alert('Visualize um cupom antes de salvar!');
     salvarTextoComoArquivo(texto, 'cupom.txt');
   });
 
   document.getElementById('btnEnviarCupom').addEventListener('click', () => {
     const texto = document.getElementById('orcamento-box').textContent;
-    if(!texto) return alert('Visualize um cupom antes de enviar!');
+    if (!texto) return alert('Visualize um cupom antes de enviar!');
     const url = `https://wa.me/?text=${encodeURIComponent(texto)}`;
     window.open(url, '_blank');
   });
 
-  // Excluir clientes/servicos
+  // Excluir clientes e serviços
   async function excluirCliente(id) {
-    if(!confirm('Confirma exclusão do cliente?')) return;
+    if (!confirm('Confirma exclusão do cliente?')) return;
     const { error } = await supabase.from('clientes').delete().eq('id', id);
-    if(error) alert('Erro ao excluir: ' + error.message);
+    if (error) alert('Erro ao excluir: ' + error.message);
     else carregarClientes();
   }
+
   async function excluirServico(id) {
-    if(!confirm('Confirma exclusão do serviço?')) return;
+    if (!confirm('Confirma exclusão do serviço?')) return;
     const { error } = await supabase.from('servicos').delete().eq('id', id);
-    if(error) alert('Erro ao excluir: ' + error.message);
+    if (error) alert('Erro ao excluir: ' + error.message);
     else carregarServicos();
   }
 
@@ -435,9 +426,9 @@ Rua 40, Travessa Recanto dos Pássaros
     const carro = e.target.carro.value.trim();
     const placa = e.target.placa.value.trim();
 
-    if(!nome) return alert('Nome é obrigatório');
+    if (!nome) return alert('Nome é obrigatório');
     const { error } = await supabase.from('clientes').insert([{ nome, telefone, carro, placa }]);
-    if(error) return alert('Erro ao salvar cliente: ' + error.message);
+    if (error) return alert('Erro ao salvar cliente: ' + error.message);
 
     e.target.reset();
     carregarClientes();
@@ -448,11 +439,11 @@ Rua 40, Travessa Recanto dos Pássaros
     const descricao = e.target.descricao.value.trim();
     const valor = parseFloat(e.target.valor.value);
 
-    if(!descricao) return alert('Descrição é obrigatória');
-    if(isNaN(valor) || valor <= 0) return alert('Valor deve ser maior que zero');
+    if (!descricao) return alert('Descrição é obrigatória');
+    if (isNaN(valor) || valor <= 0) return alert('Valor deve ser maior que zero');
 
     const { error } = await supabase.from('servicos').insert([{ descricao, valor }]);
-    if(error) return alert('Erro ao salvar serviço: ' + error.message);
+    if (error) return alert('Erro ao salvar serviço: ' + error.message);
 
     e.target.reset();
     carregarServicos();
@@ -465,17 +456,17 @@ Rua 40, Travessa Recanto dos Pássaros
     const servicoId = parseInt(e.target['select-servico'].value);
     const desconto = parseFloat(e.target['desconto'].value) || 0;
 
-    if(!clienteId || !servicoId) return alert('Selecione cliente e serviço');
+    if (!clienteId || !servicoId) return alert('Selecione cliente e serviço');
 
     const { error } = await supabase.from('orcamentos').insert([{ cliente_id: clienteId, servico_id: servicoId, desconto }]);
-    if(error) return alert('Erro ao salvar orçamento: ' + error.message);
+    if (error) return alert('Erro ao salvar orçamento: ' + error.message);
 
     e.target.reset();
     carregarOrcamentos();
     alert('Orçamento salvo com sucesso!');
   });
 
-  // Inicializar tudo ao carregar a página
+  // Inicializar a aplicação
   async function inicializar() {
     await carregarClientes();
     await carregarServicos();
