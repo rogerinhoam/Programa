@@ -1,4 +1,4 @@
-const CACHE_NAME = 'rm-estetica-cache-v4'; // Versão do cache atualizada
+const CACHE_NAME = 'rm-estetica-cache-v5'; // Versão do cache atualizada
 const urlsToCache = [
     '/',
     '/index.html',
