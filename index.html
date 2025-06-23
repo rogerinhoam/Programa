@@ -1,469 +1,291 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>R.M. Estética Automotiva</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
-  <style>
-    /* Cores tema escuro com vermelho suave e amarelo suave */
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background-color: #121212;
-      color: #f2e7bc; /* amarelo suave */
-    }
-    header {
-      background-color: #3b1f1f; /* vermelho suave */
-      display: flex;
-      justify-content: center;
-      gap: 20px;
-      padding: 10px 0;
-      font-weight: bold;
-    }
-    header button {
-      background: none;
-      border: none;
-      color: #f2e7bc;
-      font-size: 1.1rem;
-      cursor: pointer;
-      padding: 8px 12px;
-      border-radius: 5px;
-      transition: background-color 0.3s ease;
-    }
-    header button:hover,
-    header button.active {
-      background-color: #f2e7bc;
-      color: #3b1f1f;
-    }
-    main {
-      padding: 20px;
-      max-width: 600px;
-      margin: auto;
-    }
-    section {
-      display: none;
-    }
-    section.active {
-      display: block;
-    }
-    form {
-      background-color: #1f1f1f;
-      padding: 20px;
-      border-radius: 8px;
-      margin-bottom: 20px;
-    }
-    label {
-      display: block;
-      margin-top: 10px;
-      font-weight: bold;
-    }
-    input[type="text"],
-    input[type="number"],
-    select {
-      width: 100%;
-      padding: 8px;
-      margin-top: 5px;
-      border-radius: 5px;
-      border: 1px solid #622222;
-      background-color: #121212;
-      color: #f2e7bc;
-      box-sizing: border-box;
-    }
-    input[type="checkbox"] {
-      margin-right: 5px;
-    }
-    button.submit-btn {
-      margin-top: 15px;
-      background-color: #622222;
-      color: #f2e7bc;
-      border: none;
-      padding: 12px;
-      width: 100%;
-      font-size: 1rem;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-    }
-    button.submit-btn:hover {
-      background-color: #7e2a2a;
-    }
-    .list-item {
-      background-color: #1f1f1f;
-      padding: 10px;
-      margin-bottom: 8px;
-      border-radius: 6px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      color: #f2e7bc;
-    }
-    .list-item button {
-      background: none;
-      border: none;
-      color: #f2e7bc;
-      cursor: pointer;
-      margin-left: 10px;
-      font-size: 1.1rem;
-      transition: color 0.3s ease;
-    }
-    .list-item button:hover {
-      color: #ffb74d;
-    }
-    #cupom {
-      background-color: #1f1f1f;
-      border: 1px solid #622222;
-      padding: 15px;
-      white-space: pre-wrap;
-      font-family: monospace;
-      margin-bottom: 20px;
-      border-radius: 8px;
-      color: #f2e7bc;
-    }
-    .btn-group {
-      display: flex;
-      justify-content: center;
-      gap: 15px;
-      margin-bottom: 20px;
-    }
-    .btn-group button {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-      font-size: 1rem;
-      transition: background-color 0.3s ease;
-    }
-    .btn-pdf {
-      background-color: #f2e7bc;
-      color: #3b1f1f;
-    }
-    .btn-pdf:hover {
-      background-color: #e6d98f;
-    }
-    .btn-whats {
-      background-color: #622222;
-      color: #f2e7bc;
-    }
-    .btn-whats:hover {
-      background-color: #7e2a2a;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Gestão R.M. Estética Automotiva</title>
+<style>
+  body { font-family: Arial, sans-serif; background: #121212; color: #eee; margin: 0; padding: 0; }
+  header { background: #990000; padding: 10px; }
+  nav button { background: #cc3333; color: white; border: none; padding: 10px 15px; margin-right: 5px; cursor: pointer; font-weight: bold; }
+  nav button:hover { background: #ff5555; }
+  .aba { display: none; padding: 15px; }
+  .aba.active { display: block; }
+  label { display: block; margin-top: 10px; }
+  input[type=text], input[type=number] { width: 100%; padding: 8px; margin-top: 5px; border-radius: 4px; border: 1px solid #555; background: #222; color: white; }
+  button[type=submit] { margin-top: 15px; background: #cc3333; border: none; padding: 10px 20px; color: white; font-weight: bold; border-radius: 4px; cursor: pointer; }
+  button[type=submit]:hover { background: #ff5555; }
+  #listaClientes div, #listaServicos div, #listaHistorico div { background: #222; padding: 10px; margin-top: 8px; border-radius: 4px; cursor: pointer; }
+  #listaClientes div:hover, #listaServicos div:hover, #listaHistorico div:hover { background: #333; }
+  .btn-pequeno { background: #cc3333; border: none; color: white; padding: 4px 8px; margin-left: 5px; cursor: pointer; border-radius: 3px; }
+  .btn-pequeno:hover { background: #ff5555; }
+  #cupom { white-space: pre-wrap; background: #222; padding: 10px; margin-top: 10px; border-radius: 4px; font-family: monospace; }
+</style>
 </head>
 <body>
 
 <header>
-  <button id="btnClientes" class="active">Clientes</button>
-  <button id="btnServicos">Serviços</button>
-  <button id="btnOrcamentos">Orçamentos</button>
-  <button id="btnHistorico">Histórico</button>
+  <nav>
+    <button id="menuClientes">Clientes</button>
+    <button id="menuServicos">Serviços</button>
+    <button id="menuOrcamentos">Orçamentos</button>
+    <button id="menuHistorico">Histórico</button>
+  </nav>
 </header>
 
-<main>
-  <!-- Clientes -->
-  <section id="clientes" class="active">
-    <form id="formCliente">
-      <input type="hidden" id="clienteId" />
-      <label for="nomeCliente">Nome</label>
-      <input type="text" id="nomeCliente" placeholder="Nome do cliente" required />
-      <label for="telefoneCliente">Telefone</label>
-      <input type="text" id="telefoneCliente" placeholder="(00) 00000-0000" required />
-      <button type="submit" class="submit-btn">Salvar Cliente</button>
-    </form>
-    <div id="listaClientes"></div>
-  </section>
+<!-- Abas -->
+<div id="clientes" class="aba active">
+  <h2>Clientes</h2>
+  <form id="formCliente">
+    <input type="hidden" id="inputClienteId" />
+    <label>Nome:</label>
+    <input type="text" id="inputNomeCliente" required />
+    
+    <label>Telefone:</label>
+    <input type="text" id="inputTelefoneCliente" />
+    
+    <label>Carro:</label>
+    <input type="text" id="inputCarroCliente" />
+    
+    <label>Placa:</label>
+    <input type="text" id="inputPlacaCliente" />
+    
+    <button type="submit">Salvar Cliente</button>
+  </form>
+  <div id="listaClientes"></div>
+</div>
 
-  <!-- Serviços -->
-  <section id="servicos">
-    <form id="formServico">
-      <input type="hidden" id="servicoId" />
-      <label for="descricaoServico">Descrição</label>
-      <input type="text" id="descricaoServico" placeholder="Descrição do serviço" required />
-      <label for="valorServico">Valor (R$)</label>
-      <input type="number" step="0.01" id="valorServico" placeholder="0.00" required />
-      <button type="submit" class="submit-btn">Salvar Serviço</button>
-    </form>
-    <div id="listaServicos"></div>
-  </section>
+<div id="servicos" class="aba">
+  <h2>Serviços</h2>
+  <form id="formServico">
+    <input type="hidden" id="inputServicoId" />
+    <label>Descrição:</label>
+    <input type="text" id="inputDescricaoServico" required />
+    
+    <label>Valor (R$):</label>
+    <input type="number" id="inputValorServico" required min="0" step="0.01" />
+    
+    <button type="submit">Salvar Serviço</button>
+  </form>
+  <div id="listaServicos"></div>
+</div>
 
-  <!-- Orçamentos -->
-  <section id="orcamentos">
-    <form id="formOrcamento">
-      <input type="hidden" id="orcamentoId" />
-      <label for="clienteSelect">Cliente</label>
-      <select id="clienteSelect" required></select>
+<div id="orcamentos" class="aba">
+  <h2>Orçamentos</h2>
+  <form id="formOrcamento">
+    <label>Cliente:</label>
+    <select id="clienteSelect" required>
+      <option value="">Selecione um cliente</option>
+    </select>
 
-      <label for="servicoSelect">Serviço</label>
-      <select id="servicoSelect" required></select>
+    <label>Serviço:</label>
+    <select id="servicoSelect" required>
+      <option value="">Selecione um serviço</option>
+    </select>
 
-      <label for="carroOrcamento">Carro</label>
-      <input type="text" id="carroOrcamento" placeholder="Ex: uno (lpj5361)" required />
+    <label>Carro:</label>
+    <input type="text" id="carroOrcamento" required />
 
-      <label for="descontoOrcamento">Desconto (%)</label>
-      <input type="number" step="0.01" min="0" max="100" id="descontoOrcamento" value="0" />
+    <label>Desconto (%):</label>
+    <input type="number" id="descontoOrcamento" min="0" max="100" step="0.1" value="0" />
 
-      <fieldset style="margin-top:10px; border:1px solid #622222; padding:10px; border-radius:6px; color:#f2e7bc;">
-        <legend>Forma(s) de Pagamento</legend>
-        <label><input type="checkbox" name="pagamento" value="Dinheiro" /> Dinheiro</label>
-        <label><input type="checkbox" name="pagamento" value="Pix" /> Pix</label>
-        <label><input type="checkbox" name="pagamento" value="Cartão" /> Cartão</label>
-      </fieldset>
+    <fieldset style="margin-top:10px;">
+      <legend>Formas de pagamento (selecione ao menos uma):</legend>
+      <label><input type="checkbox" name="pagamento" value="Dinheiro" /> Dinheiro</label>
+      <label><input type="checkbox" name="pagamento" value="Pix" /> Pix</label>
+      <label><input type="checkbox" name="pagamento" value="Cartão" /> Cartão</label>
+    </fieldset>
 
-      <button type="submit" class="submit-btn">Salvar Orçamento</button>
-    </form>
+    <button type="submit">Gerar Orçamento</button>
+  </form>
 
-    <pre id="cupom"></pre>
+  <pre id="cupom"></pre>
+  
+  <button id="btnPdf" style="margin-top:10px;">Salvar como PDF</button>
+  <button id="btnWhats">Enviar pelo WhatsApp</button>
+</div>
 
-    <div class="btn-group">
-      <button id="btnPdf" class="btn-pdf">💾 Salvar PDF</button>
-      <button id="btnWhats" class="btn-whats">📲 Enviar WhatsApp</button>
-    </div>
-  </section>
+<div id="historico" class="aba">
+  <h2>Histórico de Orçamentos</h2>
+  <div id="listaHistorico"></div>
+</div>
 
-  <!-- Histórico -->
-  <section id="historico">
-    <div id="listaHistorico"></div>
-  </section>
-</main>
+<script type="module">
+// --- Configuração Supabase ---
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-<script>
-  // Inicializar Supabase
-  const supabaseUrl = 'https://zkdfimbfwgofkmmcvyfu.supabase.co';
-  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InprZGZpbWJmd2dvZmttbWN2eWZ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA2MzQxMTksImV4cCI6MjA2NjIxMDExOX0.vOTrEVYX30FpWPQykY5CF1QCfkyG5gDLnI_2N9TATRE';
-  const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+const supabaseUrl = 'https://zkdfimbfwgofkmmcvyfu.supabase.co';  // troque se necessário
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InprZGZpbWJmd2dvZmttbWN2eWZ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA2MzQxMTksImV4cCI6MjA2NjIxMDExOX0.vOTrEVYX30FpWPQykY5CF1QCfkyG5gDLnI_2N9TATRE';
+const supabase = createClient(supabaseUrl, supabaseKey);
 
-  // Elementos
-  const sections = {
-    clientes: document.getElementById('clientes'),
-    servicos: document.getElementById('servicos'),
-    orcamentos: document.getElementById('orcamentos'),
-    historico: document.getElementById('historico'),
-  };
-
-  const buttons = {
-    clientes: document.getElementById('btnClientes'),
-    servicos: document.getElementById('btnServicos'),
-    orcamentos: document.getElementById('btnOrcamentos'),
-    historico: document.getElementById('btnHistorico'),
-  };
-
-  function mostrarAba(nome) {
-    for (const key in sections) {
-      if (key === nome) {
-        sections[key].classList.add('active');
-        buttons[key].classList.add('active');
-      } else {
-        sections[key].classList.remove('active');
-        buttons[key].classList.remove('active');
-      }
-    }
-  }
-
-  // Inicializa abas
-  buttons.clientes.onclick = () => mostrarAba('clientes');
-  buttons.servicos.onclick = () => mostrarAba('servicos');
-  buttons.orcamentos.onclick = () => mostrarAba('orcamentos');
-  buttons.historico.onclick = () => {
-    mostrarAba('historico');
-    carregarHistorico();
-  };
-
-  // --- Clientes ---
-  const formCliente = document.getElementById('formCliente');
-  const listaClientes = document.getElementById('listaClientes');
-  const inputNomeCliente = document.getElementById('nomeCliente');
-  const inputTelefoneCliente = document.getElementById('telefoneCliente');
-  const inputClienteId = document.getElementById('clienteId');
-
-  async function carregarClientes() {
-    const { data, error } = await supabase.from('clientes').select('*').order('id', { ascending: false });
-    if (error) {
-      alert('Erro ao carregar clientes: ' + error.message);
-      return;
-    }
-    listaClientes.innerHTML = '';
-    const clienteSelect = document.getElementById('clienteSelect');
-    clienteSelect.innerHTML = '<option value="">Selecione um cliente</option>';
-
-    data.forEach(cliente => {
-      // Lista para edição/exclusão
-      const div = document.createElement('div');
-      div.className = 'list-item';
-      div.textContent = `${cliente.nome} - ${cliente.telefone}`;
-
-      const btnEditar = document.createElement('button');
-      btnEditar.textContent = '✏️';
-      btnEditar.title = 'Editar';
-      btnEditar.onclick = () => {
-        inputClienteId.value = cliente.id;
-        inputNomeCliente.value = cliente.nome;
-        inputTelefoneCliente.value = cliente.telefone;
-        mostrarAba('clientes');
-      };
-
-      const btnExcluir = document.createElement('button');
-      btnExcluir.textContent = '🗑️';
-      btnExcluir.title = 'Excluir';
-      btnExcluir.onclick = async () => {
-        if (confirm(`Excluir cliente ${cliente.nome}?`)) {
-          const { error } = await supabase.from('clientes').delete().eq('id', cliente.id);
-          if (error) alert('Erro ao excluir: ' + error.message);
-          else carregarClientes();
-        }
-      };
-
-      div.appendChild(btnEditar);
-      div.appendChild(btnExcluir);
-      listaClientes.appendChild(div);
-
-      // Popula select cliente do orçamento
-      const option = document.createElement('option');
-      option.value = cliente.id;
-      option.textContent = cliente.nome;
-      clienteSelect.appendChild(option);
-    });
-  }
-
-  formCliente.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const nome = inputNomeCliente.value.trim();
-    const telefone = inputTelefoneCliente.value.trim();
-    const id = inputClienteId.value;
-
-    if (!nome || !telefone) {
-      alert('Preencha todos os campos!');
-      return;
-    }
-
-    if (id) {
-      const { error } = await supabase.from('clientes').update({ nome, telefone }).eq('id', id);
-      if (error) alert('Erro ao atualizar: ' + error.message);
-      else {
-        alert('Cliente atualizado!');
-        inputClienteId.value = '';
-        formCliente.reset();
-        carregarClientes();
-      }
-    } else {
-      const { error } = await supabase.from('clientes').insert({ nome, telefone });
-      if (error) alert('Erro ao cadastrar: ' + error.message);
-      else {
-        alert('Cliente cadastrado!');
-        formCliente.reset();
-        carregarClientes();
-      }
-    }
+// --- Navegação entre abas ---
+function mostrarAba(nomeAba) {
+  document.querySelectorAll('.aba').forEach(aba => {
+    aba.classList.toggle('active', aba.id === nomeAba);
   });
+}
+document.getElementById('menuClientes').onclick = () => mostrarAba('clientes');
+document.getElementById('menuServicos').onclick = () => mostrarAba('servicos');
+document.getElementById('menuOrcamentos').onclick = () => mostrarAba('orcamentos');
+document.getElementById('menuHistorico').onclick = () => mostrarAba('historico');
 
-  // --- Serviços ---
-  const formServico = document.getElementById('formServico');
-  const listaServicos = document.getElementById('listaServicos');
-  const inputDescricaoServico = document.getElementById('descricaoServico');
-  const inputValorServico = document.getElementById('valorServico');
-  const inputServicoId = document.getElementById('servicoId');
+// --- Clientes ---
+const formCliente = document.getElementById('formCliente');
+const inputClienteId = document.getElementById('inputClienteId');
+const inputNomeCliente = document.getElementById('inputNomeCliente');
+const inputTelefoneCliente = document.getElementById('inputTelefoneCliente');
+const inputCarroCliente = document.getElementById('inputCarroCliente');
+const inputPlacaCliente = document.getElementById('inputPlacaCliente');
+const listaClientes = document.getElementById('listaClientes');
 
-  async function carregarServicos() {
-    const { data, error } = await supabase.from('servicos').select('*').order('id', { ascending: false });
-    if (error) {
-      alert('Erro ao carregar serviços: ' + error.message);
-      return;
-    }
-    listaServicos.innerHTML = '';
-    const servicoSelect = document.getElementById('servicoSelect');
-    servicoSelect.innerHTML = '<option value="">Selecione um serviço</option>';
-
-    data.forEach(servico => {
-      // Lista para edição/exclusão
-      const div = document.createElement('div');
-      div.className = 'list-item';
-      div.textContent = `${servico.descricao} - R$ ${servico.valor.toFixed(2)}`;
-
-      const btnEditar = document.createElement('button');
-      btnEditar.textContent = '✏️';
-      btnEditar.title = 'Editar';
-      btnEditar.onclick = () => {
-        inputServicoId.value = servico.id;
-        inputDescricaoServico.value = servico.descricao;
-        inputValorServico.value = servico.valor;
-        mostrarAba('servicos');
-      };
-
-      const btnExcluir = document.createElement('button');
-      btnExcluir.textContent = '🗑️';
-      btnExcluir.title = 'Excluir';
-      btnExcluir.onclick = async () => {
-        if (confirm(`Excluir serviço ${servico.descricao}?`)) {
-          const { error } = await supabase.from('servicos').delete().eq('id', servico.id);
-          if (error) alert('Erro ao excluir: ' + error.message);
-          else carregarServicos();
-        }
-      };
-
-      div.appendChild(btnEditar);
-      div.appendChild(btnExcluir);
-      listaServicos.appendChild(div);
-
-      // Popula select serviço do orçamento
-      const option = document.createElement('option');
-      option.value = servico.id;
-      option.textContent = servico.descricao;
-      servicoSelect.appendChild(option);
-    });
+async function carregarClientes() {
+  const { data, error } = await supabase.from('clientes').select('*').order('id', { ascending: true });
+  if (error) {
+    alert('Erro ao carregar clientes: ' + error.message);
+    return;
   }
-
-  formServico.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const descricao = inputDescricaoServico.value.trim();
-    const valor = parseFloat(inputValorServico.value);
-    const id = inputServicoId.value;
-
-    if (!descricao || isNaN(valor)) {
-      alert('Preencha todos os campos corretamente!');
-      return;
-    }
-
-    if (id) {
-      const { error } = await supabase.from('servicos').update({ descricao, valor }).eq('id', id);
-      if (error) alert('Erro ao atualizar: ' + error.message);
-      else {
-        alert('Serviço atualizado!');
-        inputServicoId.value = '';
-        formServico.reset();
-        carregarServicos();
-      }
-    } else {
-      const { error } = await supabase.from('servicos').insert({ descricao, valor });
-      if (error) alert('Erro ao cadastrar: ' + error.message);
-      else {
-        alert('Serviço cadastrado!');
-        formServico.reset();
-        carregarServicos();
-      }
-    }
+  listaClientes.innerHTML = '';
+  const clienteSelect = document.getElementById('clienteSelect');
+  clienteSelect.innerHTML = '<option value="">Selecione um cliente</option>';
+  data.forEach(cliente => {
+    // Lista no painel
+    const div = document.createElement('div');
+    div.textContent = `${cliente.nome} - ${cliente.carro || '-'} (${cliente.placa || '-'})`;
+    div.onclick = () => {
+      inputClienteId.value = cliente.id;
+      inputNomeCliente.value = cliente.nome;
+      inputTelefoneCliente.value = cliente.telefone || '';
+      inputCarroCliente.value = cliente.carro || '';
+      inputPlacaCliente.value = cliente.placa || '';
+      mostrarAba('clientes');
+    };
+    listaClientes.appendChild(div);
+    // Lista no select do orçamento
+    const option = document.createElement('option');
+    option.value = cliente.id;
+    option.textContent = cliente.nome;
+    clienteSelect.appendChild(option);
   });
+}
 
-  // --- Orçamentos ---
-  const formOrcamento = document.getElementById('formOrcamento');
-  const inputClienteSelect = document.getElementById('clienteSelect');
-  const inputServicoSelect = document.getElementById('servicoSelect');
-  const inputCarro = document.getElementById('carroOrcamento');
-  const inputDesconto = document.getElementById('descontoOrcamento');
-  const cupomEl = document.getElementById('cupom');
+formCliente.addEventListener('submit', async e => {
+  e.preventDefault();
+  const id = inputClienteId.value;
+  const nome = inputNomeCliente.value.trim();
+  const telefone = inputTelefoneCliente.value.trim();
+  const carro = inputCarroCliente.value.trim();
+  const placa = inputPlacaCliente.value.trim();
 
-  // Função para formatar data
-  function formatarData(data) {
-    return data.toLocaleDateString('pt-BR') + ', ' + data.toLocaleTimeString('pt-BR');
+  if (!nome) {
+    alert('Preencha o nome do cliente');
+    return;
   }
 
-  // Gerar cupom formatado conforme solicitado
-  function gerarCupom(orcamento, cliente, servico) {
-    const data = new Date(orcamento.created_at || new Date());
-    const desconto = orcamento.desconto || 0;
-    const valorComDesconto = servico.valor * (1 - desconto / 100);
-    const formasPagto = orcamento.forma_pagamento.split(',').join(', ');
+  if (id) {
+    const { error } = await supabase.from('clientes').update({ nome, telefone, carro, placa }).eq('id', id);
+    if (error) alert('Erro ao atualizar cliente: ' + error.message);
+    else {
+      alert('Cliente atualizado!');
+      formCliente.reset();
+      inputClienteId.value = '';
+      carregarClientes();
+    }
+  } else {
+    const { error } = await supabase.from('clientes').insert({ nome, telefone, carro, placa });
+    if (error) alert('Erro ao cadastrar cliente: ' + error.message);
+    else {
+      alert('Cliente cadastrado!');
+      formCliente.reset();
+      carregarClientes();
+    }
+  }
+});
 
-    return `
+// --- Serviços ---
+const formServico = document.getElementById('formServico');
+const inputServicoId = document.getElementById('inputServicoId');
+const inputDescricaoServico = document.getElementById('inputDescricaoServico');
+const inputValorServico = document.getElementById('inputValorServico');
+const listaServicos = document.getElementById('listaServicos');
+
+async function carregarServicos() {
+  const { data, error } = await supabase.from('servicos').select('*').order('id', { ascending: true });
+  if (error) {
+    alert('Erro ao carregar serviços: ' + error.message);
+    return;
+  }
+  listaServicos.innerHTML = '';
+  const servicoSelect = document.getElementById('servicoSelect');
+  servicoSelect.innerHTML = '<option value="">Selecione um serviço</option>';
+  data.forEach(servico => {
+    // Lista no painel
+    const div = document.createElement('div');
+    div.textContent = `${servico.descricao} — R$ ${servico.valor.toFixed(2)}`;
+    div.onclick = () => {
+      inputServicoId.value = servico.id;
+      inputDescricaoServico.value = servico.descricao;
+      inputValorServico.value = servico.valor;
+      mostrarAba('servicos');
+    };
+    listaServicos.appendChild(div);
+    // Lista no select do orçamento
+    const option = document.createElement('option');
+    option.value = servico.id;
+    option.textContent = servico.descricao;
+    servicoSelect.appendChild(option);
+  });
+}
+
+formServico.addEventListener('submit', async e => {
+  e.preventDefault();
+  const id = inputServicoId.value;
+  const descricao = inputDescricaoServico.value.trim();
+  const valor = parseFloat(inputValorServico.value);
+
+  if (!descricao || isNaN(valor)) {
+    alert('Preencha todos os campos corretamente!');
+    return;
+  }
+
+  if (id) {
+    const { error } = await supabase.from('servicos').update({ descricao, valor }).eq('id', id);
+    if (error) alert('Erro ao atualizar serviço: ' + error.message);
+    else {
+      alert('Serviço atualizado!');
+      formServico.reset();
+      inputServicoId.value = '';
+      carregarServicos();
+    }
+  } else {
+    const { error } = await supabase.from('servicos').insert({ descricao, valor });
+    if (error) alert('Erro ao cadastrar serviço: ' + error.message);
+    else {
+      alert('Serviço cadastrado!');
+      formServico.reset();
+      carregarServicos();
+    }
+  }
+});
+
+// --- Orçamentos ---
+const formOrcamento = document.getElementById('formOrcamento');
+const inputClienteSelect = document.getElementById('clienteSelect');
+const inputServicoSelect = document.getElementById('servicoSelect');
+const inputCarroOrcamento = document.getElementById('carroOrcamento');
+const inputDescontoOrcamento = document.getElementById('descontoOrcamento');
+const cupomEl = document.getElementById('cupom');
+
+function formatarData(data) {
+  return data.toLocaleDateString('pt-BR') + ', ' + data.toLocaleTimeString('pt-BR');
+}
+
+function gerarCupom(orcamento, cliente, servico) {
+  const data = new Date(orcamento.created_at || new Date());
+  const desconto = orcamento.desconto || 0;
+  const valorComDesconto = servico.valor * (1 - desconto / 100);
+  const formasPagto = orcamento.forma_pagamento.split(',').join(', ');
+
+  return `
 � Orçamento R.M. Estética Automotiva �
 
 ==============================
@@ -491,118 +313,124 @@ Rua 40, Travessa Recanto dos Pássaros
 
 � Entre em contato conosco para agendar seu serviço!
 Obrigado pela preferência! �
-    `.trim();
+  `.trim();
+}
+
+formOrcamento.addEventListener('submit', async e => {
+  e.preventDefault();
+
+  const cliente_id = inputClienteSelect.value;
+  const servico_id = inputServicoSelect.value;
+  const carro = inputCarroOrcamento.value.trim();
+  const desconto = parseFloat(inputDescontoOrcamento.value) || 0;
+  const pagamentoChecks = Array.from(document.querySelectorAll('input[name="pagamento"]:checked'));
+
+  if (!cliente_id || !servico_id || !carro || pagamentoChecks.length === 0) {
+    alert('Preencha todos os campos e selecione pelo menos uma forma de pagamento!');
+    return;
   }
 
-  formOrcamento.addEventListener('submit', async (e) => {
-    e.preventDefault();
+  const forma_pagamento = pagamentoChecks.map(i => i.value).join(',');
 
-    const cliente_id = inputClienteSelect.value;
-    const servico_id = inputServicoSelect.value;
-    const carro = inputCarro.value.trim();
-    const desconto = parseFloat(inputDesconto.value) || 0;
-    const pagamentoChecks = Array.from(document.querySelectorAll('input[name="pagamento"]:checked'));
-    if (!cliente_id || !servico_id || !carro || pagamentoChecks.length === 0) {
-      alert('Preencha todos os campos e selecione pelo menos uma forma de pagamento!');
-      return;
-    }
-    const forma_pagamento = pagamentoChecks.map(i => i.value).join(',');
+  const { data: orcamento, error } = await supabase.from('orcamentos').insert({
+    cliente_id,
+    servico_id,
+    carro,
+    desconto,
+    forma_pagamento,
+  }).select().single();
 
-    // Inserir orçamento
-    const { data: orcamento, error } = await supabase.from('orcamentos').insert({
-      cliente_id,
-      servico_id,
-      carro,
-      desconto,
-      forma_pagamento,
-    }).select().single();
+  if (error) {
+    alert('Erro ao salvar orçamento: ' + error.message);
+    return;
+  }
 
-    if (error) {
-      alert('Erro ao salvar orçamento: ' + error.message);
-      return;
-    }
+  // Buscar cliente e serviço para cupom
+  const { data: cliente } = await supabase.from('clientes').select('*').eq('id', cliente_id).single();
+  const { data: servico } = await supabase.from('servicos').select('*').eq('id', servico_id).single();
 
-    // Buscar cliente e serviço para gerar cupom
-    const { data: cliente } = await supabase.from('clientes').select('*').eq('id', cliente_id).single();
-    const { data: servico } = await supabase.from('servicos').select('*').eq('id', servico_id).single();
+  const cupom = gerarCupom(orcamento, cliente, servico);
+  cupomEl.textContent = cupom;
+  alert('Orçamento salvo e cupom gerado!');
+  mostrarAba('orcamentos');
+});
 
-    const cupom = gerarCupom(orcamento, cliente, servico);
-    cupomEl.textContent = cupom;
-    alert('Orçamento salvo e cupom gerado!');
+// --- Histórico ---
+const listaHistorico = document.getElementById('listaHistorico');
+
+async function carregarHistorico() {
+  const { data: orcamentos, error } = await supabase
+    .from('orcamentos')
+    .select('*, clientes(*), servicos(*)')
+    .order('id', { ascending: false });
+
+  if (error) {
+    alert('Erro ao carregar histórico: ' + error.message);
+    return;
+  }
+
+  listaHistorico.innerHTML = '';
+  orcamentos.forEach(orc => {
+    const cliente = orc.clientes;
+    const servico = orc.servicos;
+    const div = document.createElement('div');
+    div.className = 'list-item';
+    div.textContent = `#${orc.id} - ${cliente.nome} - ${servico.descricao}`;
+
+    // Botão visualizar cupom
+    const btnVisualizar = document.createElement('button');
+    btnVisualizar.textContent = '📄';
+    btnVisualizar.title = 'Visualizar Cupom';
+    btnVisualizar.onclick = () => {
+      const cupom = gerarCupom(orc, cliente, servico);
+      cupomEl.textContent = cupom;
+      mostrarAba('orcamentos');
+    };
+
+    // Botão excluir
+    const btnExcluir = document.createElement('button');
+    btnExcluir.textContent = '🗑️';
+    btnExcluir.title = 'Excluir Orçamento';
+    btnExcluir.onclick = async () => {
+      if (confirm(`Excluir orçamento #${orc.id}?`)) {
+        const { error } = await supabase.from('orcamentos').delete().eq('id', orc.id);
+        if (error) alert('Erro ao excluir: ' + error.message);
+        else carregarHistorico();
+      }
+    };
+
+    div.appendChild(btnVisualizar);
+    div.appendChild(btnExcluir);
+    listaHistorico.appendChild(div);
   });
+}
 
-  // --- Histórico ---
-  const listaHistorico = document.getElementById('listaHistorico');
+// --- PDF e WhatsApp ---
+document.getElementById('btnPdf').onclick = () => {
+  const texto = cupomEl.textContent;
+  if (!texto) return alert('Nenhum cupom para salvar.');
+  const blob = new Blob([texto], { type: 'application/pdf' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'orcamento.pdf';
+  a.click();
+  URL.revokeObjectURL(url);
+};
 
-  async function carregarHistorico() {
-    const { data: orcamentos, error } = await supabase
-      .from('orcamentos')
-      .select('*, clientes(*), servicos(*)')
-      .order('id', { ascending: false });
+document.getElementById('btnWhats').onclick = () => {
+  const texto = encodeURIComponent(cupomEl.textContent);
+  if (!texto) return alert('Nenhum cupom para enviar.');
+  const url = `https://api.whatsapp.com/send?text=${texto}`;
+  window.open(url, '_blank');
+};
 
-    if (error) {
-      alert('Erro ao carregar histórico: ' + error.message);
-      return;
-    }
-
-    listaHistorico.innerHTML = '';
-    orcamentos.forEach(orc => {
-      const cliente = orc.clientes;
-      const servico = orc.servicos;
-      const div = document.createElement('div');
-      div.className = 'list-item';
-      div.textContent = `#${orc.id} - ${cliente.nome} - ${servico.descricao}`;
-
-      const btnVisualizar = document.createElement('button');
-      btnVisualizar.textContent = '📄';
-      btnVisualizar.title = 'Visualizar Cupom';
-      btnVisualizar.onclick = () => {
-        const cupom = gerarCupom(orc, cliente, servico);
-        cupomEl.textContent = cupom;
-        mostrarAba('orcamentos');
-      };
-
-      const btnExcluir = document.createElement('button');
-      btnExcluir.textContent = '🗑️';
-      btnExcluir.title = 'Excluir Orçamento';
-      btnExcluir.onclick = async () => {
-        if (confirm('Excluir orçamento #' + orc.id + '?')) {
-          const { error } = await supabase.from('orcamentos').delete().eq('id', orc.id);
-          if (error) alert('Erro ao excluir: ' + error.message);
-          else carregarHistorico();
-        }
-      };
-
-      div.appendChild(btnVisualizar);
-      div.appendChild(btnExcluir);
-      listaHistorico.appendChild(div);
-    });
-  }
-
-  // --- PDF e WhatsApp ---
-
-  document.getElementById('btnPdf').onclick = () => {
-    const texto = cupomEl.textContent;
-    if (!texto) return alert('Nenhum cupom para salvar.');
-    const blob = new Blob([texto], { type: 'application/pdf' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'orcamento.pdf';
-    link.click();
-  };
-
-  document.getElementById('btnWhats').onclick = () => {
-    const texto = encodeURIComponent(cupomEl.textContent);
-    if (!texto) return alert('Nenhum cupom para enviar.');
-    // Número de telefone fixo ou cliente?
-    const numero = '5524999486232'; // Formato internacional sem +
-    const url = `https://api.whatsapp.com/send?phone=${numero}&text=${texto}`;
-    window.open(url, '_blank');
-  };
-
-  // Inicializa carregamentos
+// --- Inicialização ---
+window.onload = () => {
   carregarClientes();
   carregarServicos();
+  carregarHistorico();
+};
 </script>
 
 </body>
