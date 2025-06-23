@@ -12,14 +12,15 @@
   .aba { display: none; padding: 15px; }
   .aba.active { display: block; }
   label { display: block; margin-top: 10px; }
-  input[type=text], input[type=number] { width: 100%; padding: 8px; margin-top: 5px; border-radius: 4px; border: 1px solid #555; background: #222; color: white; }
+  input[type=text], input[type=number], select { width: 100%; padding: 8px; margin-top: 5px; border-radius: 4px; border: 1px solid #555; background: #222; color: white; }
   button[type=submit] { margin-top: 15px; background: #cc3333; border: none; padding: 10px 20px; color: white; font-weight: bold; border-radius: 4px; cursor: pointer; }
   button[type=submit]:hover { background: #ff5555; }
-  #listaClientes div, #listaServicos div, #listaHistorico div { background: #222; padding: 10px; margin-top: 8px; border-radius: 4px; cursor: pointer; }
+  #listaClientes div, #listaServicos div, #listaHistorico div { background: #222; padding: 10px; margin-top: 8px; border-radius: 4px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
   #listaClientes div:hover, #listaServicos div:hover, #listaHistorico div:hover { background: #333; }
   .btn-pequeno { background: #cc3333; border: none; color: white; padding: 4px 8px; margin-left: 5px; cursor: pointer; border-radius: 3px; }
   .btn-pequeno:hover { background: #ff5555; }
-  #cupom { white-space: pre-wrap; background: #222; padding: 10px; margin-top: 10px; border-radius: 4px; font-family: monospace; }
+  #cupomHistorico { white-space: pre-wrap; background: #222; padding: 10px; margin-top: 15px; border-radius: 4px; font-family: monospace; max-height: 400px; overflow-y: auto; }
+  .acoes-orcamento button { margin-left: 5px; }
 </style>
 </head>
 <body>
@@ -83,9 +84,6 @@
       <option value="">Selecione um serviço</option>
     </select>
 
-    <label>Carro:</label>
-    <input type="text" id="carroOrcamento" required />
-
     <label>Desconto (%):</label>
     <input type="number" id="descontoOrcamento" min="0" max="100" step="0.1" value="0" />
 
@@ -108,6 +106,7 @@
 <div id="historico" class="aba">
   <h2>Histórico de Orçamentos</h2>
   <div id="listaHistorico"></div>
+  <pre id="cupomHistorico"></pre>
 </div>
 
 <script type="module">
@@ -271,7 +270,6 @@ formServico.addEventListener('submit', async e => {
 const formOrcamento = document.getElementById('formOrcamento');
 const inputClienteSelect = document.getElementById('clienteSelect');
 const inputServicoSelect = document.getElementById('servicoSelect');
-const inputCarroOrcamento = document.getElementById('carroOrcamento');
 const inputDescontoOrcamento = document.getElementById('descontoOrcamento');
 const cupomEl = document.getElementById('cupom');
 
@@ -293,7 +291,7 @@ function gerarCupom(orcamento, cliente, servico) {
 ==============================
 Data: ${formatarData(data)}       
 Cliente: ${cliente.nome}
-Carro: ${orcamento.carro || '-'}
+Carro: ${cliente.carro || '-'}
 ------------------------------
 SERVIÇOS:
 - ${servico.descricao}  R$ ${servico.valor.toFixed(2)}
@@ -321,11 +319,10 @@ formOrcamento.addEventListener('submit', async e => {
 
   const cliente_id = inputClienteSelect.value;
   const servico_id = inputServicoSelect.value;
-  const carro = inputCarroOrcamento.value.trim();
   const desconto = parseFloat(inputDescontoOrcamento.value) || 0;
   const pagamentoChecks = Array.from(document.querySelectorAll('input[name="pagamento"]:checked'));
 
-  if (!cliente_id || !servico_id || !carro || pagamentoChecks.length === 0) {
+  if (!cliente_id || !servico_id || pagamentoChecks.length === 0) {
     alert('Preencha todos os campos e selecione pelo menos uma forma de pagamento!');
     return;
   }
@@ -335,7 +332,6 @@ formOrcamento.addEventListener('submit', async e => {
   const { data: orcamento, error } = await supabase.from('orcamentos').insert({
     cliente_id,
     servico_id,
-    carro,
     desconto,
     forma_pagamento,
   }).select().single();
@@ -357,6 +353,7 @@ formOrcamento.addEventListener('submit', async e => {
 
 // --- Histórico ---
 const listaHistorico = document.getElementById('listaHistorico');
+const cupomHistorico = document.getElementById('cupomHistorico');
 
 async function carregarHistorico() {
   const { data: orcamentos, error } = await supabase
@@ -370,6 +367,8 @@ async function carregarHistorico() {
   }
 
   listaHistorico.innerHTML = '';
+  cupomHistorico.textContent = '';
+
   orcamentos.forEach(orc => {
     const cliente = orc.clientes;
     const servico = orc.servicos;
@@ -377,35 +376,39 @@ async function carregarHistorico() {
     div.className = 'list-item';
     div.textContent = `#${orc.id} - ${cliente.nome} - ${servico.descricao}`;
 
+    const acoesDiv = document.createElement('div');
+    acoesDiv.className = 'acoes-orcamento';
+
     // Botão visualizar cupom
     const btnVisualizar = document.createElement('button');
     btnVisualizar.textContent = '📄';
     btnVisualizar.title = 'Visualizar Cupom';
     btnVisualizar.onclick = () => {
       const cupom = gerarCupom(orc, cliente, servico);
-      cupomEl.textContent = cupom;
-      mostrarAba('orcamentos');
+      cupomHistorico.textContent = cupom;
+      mostrarAba('historico');
+      window.scrollTo(0, cupomHistorico.offsetTop);
     };
+    acoesDiv.appendChild(btnVisualizar);
 
     // Botão excluir
     const btnExcluir = document.createElement('button');
-    btnExcluir.textContent = '🗑️';
+    btnExcluir.textContent = '❌';
     btnExcluir.title = 'Excluir Orçamento';
     btnExcluir.onclick = async () => {
-      if (confirm(`Excluir orçamento #${orc.id}?`)) {
-        const { error } = await supabase.from('orcamentos').delete().eq('id', orc.id);
-        if (error) alert('Erro ao excluir: ' + error.message);
-        else carregarHistorico();
-      }
+      if (!confirm('Confirma exclusão do orçamento?')) return;
+      const { error } = await supabase.from('orcamentos').delete().eq('id', orc.id);
+      if (error) alert('Erro ao excluir: ' + error.message);
+      else carregarHistorico();
     };
+    acoesDiv.appendChild(btnExcluir);
 
-    div.appendChild(btnVisualizar);
-    div.appendChild(btnExcluir);
+    div.appendChild(acoesDiv);
     listaHistorico.appendChild(div);
   });
 }
 
-// --- PDF e WhatsApp ---
+// --- PDF ---
 document.getElementById('btnPdf').onclick = () => {
   const texto = cupomEl.textContent;
   if (!texto) return alert('Nenhum cupom para salvar.');
@@ -418,6 +421,7 @@ document.getElementById('btnPdf').onclick = () => {
   URL.revokeObjectURL(url);
 };
 
+// --- WhatsApp ---
 document.getElementById('btnWhats').onclick = () => {
   const texto = encodeURIComponent(cupomEl.textContent);
   if (!texto) return alert('Nenhum cupom para enviar.');
