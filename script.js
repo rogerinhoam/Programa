@@ -77,8 +77,14 @@ Forma de Pagamento: ${forma}
 async function carregarClientes() {
   const sel = document.getElementById('clienteSelect');
   sel.innerHTML = '<option value="">Selecione um cliente</option>';
-  const { data } = await supabase.from('clientes').select();
+  const { data, error } = await supabase.from('clientes').select();
+  console.log("CLIENTES:", data, error);
+  if (error) {
+    alert("Erro ao carregar clientes: " + error.message);
+    return;
+  }
   data.forEach(c => sel.add(new Option(c.nome, c.id)));
+
 }
 
 async function carregarServicos() {
