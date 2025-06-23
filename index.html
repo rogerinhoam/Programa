@@ -1,203 +1,92 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>R.M. Estética Automotiva</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
-
-  * {
-    box-sizing: border-box;
-  }
-  body {
-    margin: 0;
-    font-family: 'Montserrat', sans-serif;
-    background-color: #121212;
-    color: #f0e6d2;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-  header {
-    background: #7f1d1d;
-    color: #ffdd57;
-    padding: 20px;
-    text-align: center;
-    font-size: 1.8rem;
-    font-weight: 700;
-    letter-spacing: 2px;
-    text-shadow: 1px 1px 4px #330000;
-    user-select: none;
-  }
-  nav {
-    display: flex;
-    background: #1f1f1f;
-    box-shadow: inset 0 -3px 5px #7f1d1d;
-  }
-  nav button {
-    flex: 1;
-    padding: 15px 0;
-    border: none;
-    background: #2a2a2a;
-    color: #f0e6d2;
-    font-weight: 700;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: background-color 0.3s ease, color 0.3s ease;
-    position: relative;
-  }
-  nav button:hover {
-    background: #7f1d1d;
-    color: #fff3b0;
-  }
-  nav button.active {
-    background: #7f1d1d;
-    color: #ffdd57;
-    box-shadow: 0 3px 10px #ffdd57aa;
-    font-size: 1.1rem;
-  }
-  section {
-    max-width: 600px;
-    margin: 30px auto;
-    padding: 0 15px;
-    display: none;
-    opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 0.4s ease, transform 0.4s ease;
-  }
-  section.active {
-    display: block;
-    opacity: 1;
-    transform: translateY(0);
-  }
-  h2 {
-    color: #ffdd57;
-    margin-bottom: 15px;
-    user-select: none;
-  }
-  form {
-    display: flex;
-    flex-direction: column;
-  }
-  input, select, textarea, button {
-    padding: 12px 15px;
-    margin-bottom: 15px;
-    border-radius: 8px;
-    border: none;
-    font-size: 1rem;
-    font-family: 'Montserrat', sans-serif;
-  }
-  input, select, textarea {
-    background-color: #222;
-    color: #f0e6d2;
-    box-shadow: inset 2px 2px 5px #000000cc;
-    transition: background-color 0.3s ease;
-  }
-  input::placeholder, select::placeholder {
-    color: #bbb;
-  }
-  input:focus, select:focus, textarea:focus {
-    outline: none;
-    background-color: #3a1f1f;
-    box-shadow: inset 2px 2px 7px #ffdd57cc;
-  }
-  button[type="submit"] {
-    background-color: #7f1d1d;
-    color: #ffdd57;
-    font-weight: 700;
-    cursor: pointer;
-    box-shadow: 0 0 10px #ffdd57bb;
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  }
-  button[type="submit"]:hover {
-    background-color: #aa2e2e;
-    box-shadow: 0 0 20px #ffdd57ee;
-  }
-  ul {
-    list-style: none;
-    padding: 0;
-  }
-  li {
-    background-color: #222;
-    margin-bottom: 10px;
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 0 5px #7f1d1d88;
-    font-size: 1rem;
-    user-select: none;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  li > div {
-    flex-grow: 1;
-  }
-  li button {
-    margin-left: 10px;
-    background: #7f1d1d;
-    border: none;
-    color: #ffdd57;
-    padding: 6px 12px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: 700;
-    font-size: 0.85rem;
-    transition: background-color 0.3s ease;
-  }
-  li button:hover {
-    background: #aa2e2e;
-  }
-  .orcamento-box {
-    white-space: pre-line;
-    background-color: #1b1b1b;
-    border: 2px solid #7f1d1d;
-    padding: 15px;
-    border-radius: 10px;
-    margin-top: 20px;
-    font-family: monospace;
-    font-size: 1rem;
-    color: #ffdd57;
-    user-select: text;
-  }
-  .actions {
-    margin-top: 15px;
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-  }
-  .actions button {
-    padding: 10px 18px;
-    font-weight: 700;
-    font-size: 1rem;
-    border-radius: 8px;
-    background-color: #7f1d1d;
-    color: #ffdd57;
-    cursor: pointer;
-    box-shadow: 0 0 10px #ffdd57bb;
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
-    user-select: none;
-  }
-  .actions button:hover {
-    background-color: #aa2e2e;
-    box-shadow: 0 0 20px #ffdd57ee;
-  }
-  @media (max-width: 640px) {
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>R.M. Estética Automotiva</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+  <style>
     body {
-      font-size: 14px;
+      margin: 0;
+      font-family: 'Montserrat', sans-serif;
+      background-color: #121212;
+      color: #f0e6d2;
     }
     header {
-      font-size: 1.4rem;
+      background: #7f1d1d;
+      color: #ffdd57;
       padding: 15px;
+      text-align: center;
+      font-size: 1.6rem;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+    nav {
+      display: flex;
+      background-color: #1e1e1e;
     }
     nav button {
-      font-size: 0.9rem;
-      padding: 12px 0;
+      flex: 1;
+      padding: 12px;
+      border: none;
+      background: #2a2a2a;
+      color: #f0e6d2;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    nav button.active {
+      background-color: #7f1d1d;
+      color: #ffdd57;
     }
     section {
-      margin: 20px 10px;
+      display: none;
+      padding: 20px;
+      max-width: 600px;
+      margin: auto;
     }
-  }
-</style>
+    section.active {
+      display: block;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+    }
+    input, select {
+      padding: 10px;
+      margin-bottom: 12px;
+      border-radius: 8px;
+      border: none;
+      background-color: #333;
+      color: #f0e6d2;
+    }
+    button {
+      background-color: #7f1d1d;
+      color: #ffdd57;
+      border: none;
+      padding: 10px;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      background-color: #1f1f1f;
+      padding: 10px;
+      margin-bottom: 8px;
+      border-radius: 6px;
+    }
+    .orcamento-box {
+      white-space: pre-line;
+      background-color: #1b1b1b;
+      border: 1px solid #7f1d1d;
+      padding: 12px;
+      border-radius: 10px;
+      color: #ffdd57;
+    }
+  </style>
 </head>
 <body>
 
@@ -210,333 +99,163 @@
   <button data-tab="historico">📜 Histórico</button>
 </nav>
 
-<section id="clientes" class="active" aria-label="Clientes">
-  <h2>👤 Cadastro de Clientes</h2>
-  <form id="form-clientes" autocomplete="off">
-    <input type="text" name="nome" placeholder="Nome completo" required />
-    <input type="tel" name="telefone" placeholder="Telefone (opcional)" />
-    <input type="text" name="carro" placeholder="Carro (opcional)" />
-    <input type="text" name="placa" placeholder="Placa (opcional)" />
-    <button type="submit">Salvar Cliente 💾</button>
+<section id="clientes" class="active">
+  <h2>Cadastro de Clientes</h2>
+  <form id="form-clientes">
+    <input type="text" id="nome" placeholder="Nome" required />
+    <input type="tel" id="telefone" placeholder="Telefone" />
+    <input type="text" id="carro" placeholder="Carro" />
+    <input type="text" id="placa" placeholder="Placa" />
+    <button type="submit">Salvar Cliente</button>
   </form>
   <ul id="lista-clientes"></ul>
 </section>
 
-<section id="servicos" aria-label="Serviços">
-  <h2>🛠 Cadastro de Serviços</h2>
-  <form id="form-servicos" autocomplete="off">
-    <input type="text" name="descricao" placeholder="Descrição do serviço" required />
-    <input type="number" name="valor" placeholder="Valor R$" min="0" step="0.01" required />
-    <button type="submit">Salvar Serviço 💾</button>
+<section id="servicos">
+  <h2>Cadastro de Serviços</h2>
+  <form id="form-servicos">
+    <input type="text" id="descricao" placeholder="Descrição" required />
+    <input type="number" id="valor" placeholder="Valor R$" step="0.01" required />
+    <button type="submit">Salvar Serviço</button>
   </form>
   <ul id="lista-servicos"></ul>
 </section>
 
-<section id="orcamento" aria-label="Orçamento">
-  <h2>📋 Gerar Orçamento</h2>
-  <form id="form-orcamento" autocomplete="off">
-    <select id="select-cliente" name="cliente" required aria-label="Selecione cliente"></select>
-    <select id="select-servico" name="servico" required aria-label="Selecione serviço"></select>
-    <input type="number" id="desconto" name="desconto" placeholder="Desconto (%)" min="0" max="100" step="1" />
-    <button type="submit">Salvar Orçamento 💾</button>
+<section id="orcamento">
+  <h2>Gerar Orçamento</h2>
+  <form id="form-orcamento">
+    <select id="select-cliente" required></select>
+    <select id="select-servico" required></select>
+    <input type="number" id="desconto" placeholder="Desconto (%)" />
+    <button type="submit">Salvar Orçamento</button>
   </form>
 </section>
 
-<section id="historico" aria-label="Histórico">
-  <h2>📜 Histórico de Orçamentos</h2>
+<section id="historico">
+  <h2>Histórico de Orçamentos</h2>
   <ul id="lista-orcamentos"></ul>
-  <pre id="orcamento-box" class="orcamento-box" aria-live="polite" aria-atomic="true"></pre>
-  <div class="actions">
-    <button id="btnSalvarOrcamento">Salvar Orçamento 💾</button>
-    <button id="btnEnviarOrcamento">Enviar Orçamento 📤</button>
-    <button id="btnSalvarCupom">Salvar Cupom 💾</button>
-    <button id="btnEnviarCupom">Enviar Cupom 📤</button>
-  </div>
+  <pre class="orcamento-box" id="orcamento-box"></pre>
+  <button id="btnSalvarOrcamento">Salvar Orçamento 💾</button>
+  <button id="btnEnviarOrcamento">Enviar WhatsApp 📤</button>
 </section>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 <script>
-  // Inicializa supabase
   const supabase = supabase.createClient(
     'https://zkdfimbfwgofkmmcvyfu.supabase.co',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InprZGZpbGJmd2dvZmttbWN2eWZ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA2MzQxMTksImV4cCI6MjA2NjIxMDExOX0.vOTrEVYX30FpWPQykY5CF1QCfkyG5gDLnI_2N9TATRE'
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
   );
 
-  // Navegação entre abas
   const tabs = document.querySelectorAll('nav button');
   const sections = document.querySelectorAll('section');
+
   tabs.forEach(tab => {
     tab.addEventListener('click', () => {
       tabs.forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
-      const target = tab.dataset.tab;
-      sections.forEach(s => {
-        s.classList.toggle('active', s.id === target);
-      });
+      const alvo = tab.dataset.tab;
+      sections.forEach(s => s.id === alvo ? s.classList.add('active') : s.classList.remove('active'));
     });
   });
 
-  // Carregar clientes e preencher lista + select
   async function carregarClientes() {
-    const { data, error } = await supabase.from('clientes').select('*').order('nome');
-    if (error) { alert('Erro ao carregar clientes: ' + error.message); return; }
+    const { data } = await supabase.from('clientes').select('*').order('nome');
     const lista = document.getElementById('lista-clientes');
     const select = document.getElementById('select-cliente');
     lista.innerHTML = '';
-    select.innerHTML = '<option value="" disabled selected>Selecione o cliente</option>';
+    select.innerHTML = '<option value="">Selecione o cliente</option>';
     data.forEach(c => {
-      lista.innerHTML += `
-        <li>
-          <div>${c.nome} ${c.carro ? '- ' + c.carro : ''} ${c.placa ? '('+c.placa+')' : ''}</div>
-          <button onclick="excluirCliente(${c.id})" aria-label="Excluir cliente ${c.nome}">❌</button>
-        </li>`;
+      lista.innerHTML += `<li>${c.nome} ${c.carro || ''} (${c.placa || ''})</li>`;
       select.innerHTML += `<option value="${c.id}">${c.nome}</option>`;
     });
   }
 
-  // Carregar serviços e preencher lista + select
   async function carregarServicos() {
-    const { data, error } = await supabase.from('servicos').select('*').order('descricao');
-    if (error) { alert('Erro ao carregar serviços: ' + error.message); return; }
+    const { data } = await supabase.from('servicos').select('*').order('descricao');
     const lista = document.getElementById('lista-servicos');
     const select = document.getElementById('select-servico');
     lista.innerHTML = '';
-    select.innerHTML = '<option value="" disabled selected>Selecione o serviço</option>';
+    select.innerHTML = '<option value="">Selecione o serviço</option>';
     data.forEach(s => {
-      lista.innerHTML += `
-        <li>
-          <div>${s.descricao} - R$ ${s.valor.toFixed(2)}</div>
-          <button onclick="excluirServico(${s.id})" aria-label="Excluir serviço ${s.descricao}">❌</button>
-        </li>`;
+      lista.innerHTML += `<li>${s.descricao} - R$ ${s.valor.toFixed(2)}</li>`;
       select.innerHTML += `<option value="${s.id}">${s.descricao}</option>`;
     });
   }
 
-  // Carregar orçamentos para histórico
   async function carregarOrcamentos() {
-    const { data, error } = await supabase
-      .from('orcamentos')
-      .select(`
-        id,
-        desconto,
-        created_at,
-        clientes (id, nome, telefone, carro, placa),
-        servicos (id, descricao, valor)
-      `)
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      alert('Erro ao carregar orçamentos: ' + error.message);
-      return;
-    }
+    const { data } = await supabase.from('orcamentos').select(`
+      id, desconto, created_at,
+      clientes (nome, carro, placa),
+      servicos (descricao, valor)
+    `).order('created_at', { ascending: false });
 
     const lista = document.getElementById('lista-orcamentos');
     lista.innerHTML = '';
     data.forEach(o => {
       const total = o.servicos.valor * (1 - (o.desconto || 0) / 100);
-      const orcTexto =
-`🧾 Orçamento R.M. Estética Automotiva 🧾
-
-==============================
-       R.M. ESTÉTICA AUTOMOTIVA
-==============================
+      const texto =
+`🧾 R.M. Estética Automotiva 🧾
 Data: ${new Date(o.created_at).toLocaleString()}
 Cliente: ${o.clientes.nome}
-Carro: ${o.clientes.carro || '-'} (${o.clientes.placa || '-'})
-------------------------------
-SERVIÇOS:
-- ${o.servicos.descricao}  R$ ${o.servicos.valor.toFixed(2)}
-------------------------------
+Carro: ${o.clientes.carro} (${o.clientes.placa})
+Serviço: ${o.servicos.descricao}
+Valor: R$ ${o.servicos.valor.toFixed(2)}
 Desconto: ${o.desconto || 0}%
-Total: R$ ${total.toFixed(2)}
-------------------------------
-LOJA PARA CONTATO:
-Tel: 24 999486232
-Endereço:
-Rua 40, Travessa Recanto dos Pássaros
-==============================
-    Obrigado pela preferência!
-==============================`;
+Total: R$ ${total.toFixed(2)}`;
 
-      lista.innerHTML += `
-        <li>
-          <div>
-            <strong>${o.clientes.nome}</strong> — ${o.servicos.descricao}<br/>
-            R$ ${total.toFixed(2)} • ${new Date(o.created_at).toLocaleString()}
-          </div>
-          <button onclick='mostrarOrcamento(\`${orcTexto.replace(/`/g, "\\`")}\')' aria-label="Visualizar orçamento">👁️</button>
-        </li>`;
+      lista.innerHTML += `<li>
+        ${o.clientes.nome} - ${o.servicos.descricao}
+        <button onclick="document.getElementById('orcamento-box').textContent=\`${texto}\`">Ver</button>
+      </li>`;
     });
   }
 
-  // Mostrar texto no box
-  function mostrarOrcamento(texto) {
-    document.getElementById('orcamento-box').textContent = texto;
-    // Navega para aba histórico para visualizar
-    tabs.forEach(t => t.classList.remove('active'));
-    sections.forEach(s => s.classList.remove('active'));
-    document.querySelector('nav button[data-tab="historico"]').classList.add('active');
-    document.getElementById('historico').classList.add('active');
-  }
-
-  // Salvar texto como arquivo .txt
-  function salvarTextoComoArquivo(texto, nomeArquivo) {
-    const blob = new Blob([texto], {type: 'text/plain'});
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = nomeArquivo;
-    link.click();
-    URL.revokeObjectURL(link.href);
-  }
-
-  // Botões salvar/enviar - orçamento
-  document.getElementById('btnSalvarOrcamento').addEventListener('click', () => {
-    const texto = document.getElementById('orcamento-box').textContent;
-    if (!texto) return alert('Visualize um orçamento antes de salvar!');
-    salvarTextoComoArquivo(texto, 'orcamento.txt');
-  });
-
-  document.getElementById('btnEnviarOrcamento').addEventListener('click', () => {
-    const texto = document.getElementById('orcamento-box').textContent;
-    if (!texto) return alert('Visualize um orçamento antes de enviar!');
-    const url = `https://wa.me/?text=${encodeURIComponent(texto)}`;
-    window.open(url, '_blank');
-  });
-
-  // Botões salvar/enviar - cupom (mesmo texto por enquanto, pode personalizar)
-  document.getElementById('btnSalvarCupom').addEventListener('click', () => {
-    const texto = document.getElementById('orcamento-box').textContent;
-    if (!texto) return alert('Visualize um cupom antes de salvar!');
-    salvarTextoComoArquivo(texto, 'cupom.txt');
-  });
-
-  document.getElementById('btnEnviarCupom').addEventListener('click', () => {
-    const texto = document.getElementById('orcamento-box').textContent;
-    if (!texto) return alert('Visualize um cupom antes de enviar!');
-    const url = `https://wa.me/?text=${encodeURIComponent(texto)}`;
-    window.open(url, '_blank');
-  });
-
-  // Excluir clientes e serviços
-  async function excluirCliente(id) {
-    if (!confirm('Confirma exclusão do cliente?')) return;
-    const { error } = await supabase.from('clientes').delete().eq('id', id);
-    if (error) alert('Erro ao excluir: ' + error.message);
-    else carregarClientes();
-  }
-
-  async function excluirServico(id) {
-    if (!confirm('Confirma exclusão do serviço?')) return;
-    const { error } = await supabase.from('servicos').delete().eq('id', id);
-    if (error) alert('Erro ao excluir: ' + error.message);
-    else carregarServicos();
-  }
-
-  // Formulários submissão
   document.getElementById('form-clientes').addEventListener('submit', async e => {
     e.preventDefault();
-    const form = e.target;
-    const nome = form.nome.value.trim();
-    const telefone = form.telefone.value.trim();
-    const carro = form.carro.value.trim();
-    const placa = form.placa.value.trim();
-
-    if (!nome) return alert('Nome é obrigatório');
-    const { error } = await supabase.from('clientes').insert([{ nome, telefone, carro, placa }]);
-    if (error) return alert('Erro ao salvar cliente: ' + error.message);
-
-    form.reset();
+    const { nome, telefone, carro, placa } = e.target;
+    await supabase.from('clientes').insert([{ nome: nome.value, telefone: telefone.value, carro: carro.value, placa: placa.value }]);
+    e.target.reset();
     carregarClientes();
   });
 
   document.getElementById('form-servicos').addEventListener('submit', async e => {
     e.preventDefault();
-    const form = e.target;
-    const descricao = form.descricao.value.trim();
-    const valor = parseFloat(form.valor.value);
-
-    if (!descricao) return alert('Descrição é obrigatória');
-    if (isNaN(valor) || valor <= 0) return alert('Valor deve ser maior que zero');
-
-    const { error } = await supabase.from('servicos').insert([{ descricao, valor }]);
-    if (error) return alert('Erro ao salvar serviço: ' + error.message);
-
-    form.reset();
+    const { descricao, valor } = e.target;
+    await supabase.from('servicos').insert([{ descricao: descricao.value, valor: parseFloat(valor.value) }]);
+    e.target.reset();
     carregarServicos();
   });
 
   document.getElementById('form-orcamento').addEventListener('submit', async e => {
     e.preventDefault();
-    const form = e.target;
-    const clienteId = parseInt(form.cliente.value);
-    const servicoId = parseInt(form.servico.value);
-    const desconto = parseFloat(form.desconto.value) || 0;
-
-    if (!clienteId || !servicoId) return alert('Selecione cliente e serviço');
-
-    const { error } = await supabase.from('orcamentos').insert([{ cliente_id: clienteId, servico_id: servicoId, desconto }]);
-    if (error) return alert('Erro ao salvar orçamento: ' + error.message);
-
-    form.reset();
-    await carregarOrcamentos();
-    alert('Orçamento salvo com sucesso!');
-    // Vai para histórico e mostra o último orçamento salvo automaticamente
-    const { data: lastOrc, error: errLast } = await supabase
-      .from('orcamentos')
-      .select(`
-        id,
-        desconto,
-        created_at,
-        clientes (id, nome, telefone, carro, placa),
-        servicos (id, descricao, valor)
-      `)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single();
-
-    if (!errLast && lastOrc) {
-      const total = lastOrc.servicos.valor * (1 - (lastOrc.desconto || 0) / 100);
-      const orcTexto =
-`🧾 Orçamento R.M. Estética Automotiva 🧾
-
-==============================
-       R.M. ESTÉTICA AUTOMOTIVA
-==============================
-Data: ${new Date(lastOrc.created_at).toLocaleString()}
-Cliente: ${lastOrc.clientes.nome}
-Carro: ${lastOrc.clientes.carro || '-'} (${lastOrc.clientes.placa || '-'})
-------------------------------
-SERVIÇOS:
-- ${lastOrc.servicos.descricao}  R$ ${lastOrc.servicos.valor.toFixed(2)}
-------------------------------
-Desconto: ${lastOrc.desconto || 0}%
-Total: R$ ${total.toFixed(2)}
-------------------------------
-LOJA PARA CONTATO:
-Tel: 24 999486232
-Endereço:
-Rua 40, Travessa Recanto dos Pássaros
-==============================
-    Obrigado pela preferência!
-==============================`;
-      mostrarOrcamento(orcTexto);
-    }
+    const clienteId = parseInt(document.getElementById('select-cliente').value);
+    const servicoId = parseInt(document.getElementById('select-servico').value);
+    const desconto = parseFloat(document.getElementById('desconto').value || 0);
+    await supabase.from('orcamentos').insert([{ cliente_id: clienteId, servico_id: servicoId, desconto }]);
+    e.target.reset();
+    carregarOrcamentos();
   });
 
-  // Inicialização
-  async function inicializar() {
-    await carregarClientes();
-    await carregarServicos();
-    await carregarOrcamentos();
-  }
+  document.getElementById('btnSalvarOrcamento').addEventListener('click', () => {
+    const texto = document.getElementById('orcamento-box').textContent;
+    if (!texto) return;
+    const blob = new Blob([texto], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'orcamento.txt';
+    a.click();
+  });
 
-  inicializar();
+  document.getElementById('btnEnviarOrcamento').addEventListener('click', () => {
+    const texto = document.getElementById('orcamento-box').textContent;
+    if (!texto) return;
+    const url = `https://wa.me/?text=${encodeURIComponent(texto)}`;
+    window.open(url, '_blank');
+  });
 
-  // Expor funções para onclick inline no HTML
-  window.excluirCliente = excluirCliente;
-  window.excluirServico = excluirServico;
-  window.mostrarOrcamento = mostrarOrcamento;
+  carregarClientes();
+  carregarServicos();
+  carregarOrcamentos();
 </script>
-
 </body>
 </html>
