@@ -2,75 +2,79 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>R.M. Estética Automotiva</title>
-  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
   <script type="module" src="script.js" defer></script>
+  <link rel="icon" href="https://img.icons8.com/color/48/car-cleaning.png" />
 </head>
-<body>
-  <header>
-    <h1>R.M. Estética Automotiva</h1>
-    <nav>
-      <button onclick="mostrarAba('clientes')">Clientes</button>
-      <button onclick="mostrarAba('servicos')">Serviços</button>
-      <button onclick="mostrarAba('orcamentos')">Orçamentos</button>
-    </nav>
+<body class="bg-gray-100 text-gray-800">
+  <header class="bg-red-600 text-white p-4 shadow">
+    <div class="max-w-3xl mx-auto flex justify-between items-center">
+      <h1 class="text-xl font-bold">R.M. Estética Automotiva</h1>
+      <nav class="space-x-2">
+        <button onclick="mostrarAba('clientes')" class="bg-white text-red-600 px-3 py-1 rounded hover:bg-gray-200">Clientes</button>
+        <button onclick="mostrarAba('servicos')" class="bg-white text-red-600 px-3 py-1 rounded hover:bg-gray-200">Serviços</button>
+        <button onclick="mostrarAba('orcamentos')" class="bg-white text-red-600 px-3 py-1 rounded hover:bg-gray-200">Orçamentos</button>
+      </nav>
+    </div>
   </header>
 
-  <main>
+  <main class="max-w-3xl mx-auto p-4">
     <section id="clientes" class="aba">
-      <h2>Clientes</h2>
-      <div id="listaClientes" class="lista"></div>
-      <form id="formCliente" onsubmit="return false;">
+      <h2 class="text-lg font-semibold border-b pb-1 mb-4">Clientes</h2>
+      <form id="formCliente" class="space-y-3">
         <input type="hidden" id="clienteId" />
-        <input type="text" id="nome" placeholder="Nome do cliente" required />
-        <input type="text" id="telefone" placeholder="Telefone" required />
-        <button onclick="salvarCliente()">Salvar Cliente</button>
-        <button type="button" onclick="limparFormCliente()">Cancelar</button>
+        <input type="text" id="nome" placeholder="Nome" class="w-full border rounded p-2" required />
+        <input type="tel" id="telefone" placeholder="Telefone" class="w-full border rounded p-2" required />
+        <div class="flex gap-2">
+          <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Salvar Cliente</button>
+          <button type="reset" onclick="limparFormCliente()" class="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-600">Cancelar</button>
+        </div>
       </form>
+      <div id="listaClientes" class="mt-6 space-y-2"></div>
     </section>
 
-    <section id="servicos" class="aba" style="display:none;">
-      <h2>Serviços</h2>
-      <div id="listaServicos" class="lista"></div>
-      <form id="formServico" onsubmit="return false;">
+    <section id="servicos" class="aba hidden">
+      <h2 class="text-lg font-semibold border-b pb-1 mb-4">Serviços</h2>
+      <form id="formServico" class="space-y-3">
         <input type="hidden" id="servicoId" />
-        <input type="text" id="descricao" placeholder="Descrição do serviço" required />
-        <input type="number" id="valor" step="0.01" placeholder="Valor R$" required />
-        <button onclick="salvarServico()">Salvar Serviço</button>
-        <button type="button" onclick="limparFormServico()">Cancelar</button>
+        <input type="text" id="descricao" placeholder="Descrição" class="w-full border rounded p-2" required />
+        <input type="number" id="valor" placeholder="Valor (R$)" class="w-full border rounded p-2" required />
+        <div class="flex gap-2">
+          <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Salvar Serviço</button>
+          <button type="reset" onclick="limparFormServico()" class="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-600">Cancelar</button>
+        </div>
       </form>
+      <div id="listaServicos" class="mt-6 space-y-2"></div>
     </section>
 
-    <section id="orcamentos" class="aba" style="display:none;">
-      <h2>Gerar Orçamento</h2>
-      <label for="clienteSelect">Cliente:</label>
-      <select id="clienteSelect" required></select>
-
-      <label for="servicoSelect">Serviço:</label>
-      <select id="servicoSelect" required></select>
-
-      <label for="formaPagamento">Forma de Pagamento:</label>
-      <select id="formaPagamento" required>
-        <option value="Dinheiro">Dinheiro</option>
-        <option value="Cartão">Cartão</option>
-        <option value="Pix">Pix</option>
-      </select>
-
-      <button onclick="gerarOrcamento()">Gerar Orçamento</button>
-
-      <pre id="cupom" class="cupom"></pre>
-
-      <h3>Histórico de Orçamentos</h3>
-      <div id="listaOrcamentos" class="lista"></div>
+    <section id="orcamentos" class="aba hidden">
+      <h2 class="text-lg font-semibold border-b pb-1 mb-4">Gerar Orçamento</h2>
+      <form id="formOrcamento" class="space-y-3">
+        <select id="clienteSelect" class="w-full border rounded p-2" required>
+          <option value="">Selecione um cliente</option>
+        </select>
+        <select id="servicoSelect" class="w-full border rounded p-2" required>
+          <option value="">Selecione um serviço</option>
+        </select>
+        <select id="formaPagamento" class="w-full border rounded p-2" required>
+          <option value="">Forma de pagamento</option>
+          <option value="Dinheiro">Dinheiro</option>
+          <option value="Cartão">Cartão</option>
+          <option value="Pix">Pix</option>
+        </select>
+        <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Gerar Cupom</button>
+      </form>
+      <pre id="cupom" class="mt-4 p-4 bg-white border rounded font-mono"></pre>
+      <div id="listaOrcamentos" class="mt-6 space-y-2"></div>
     </section>
   </main>
 
   <script>
-    function mostrarAba(nome) {
-      document.querySelectorAll('.aba').forEach(sec => {
-        sec.style.display = sec.id === nome ? 'block' : 'none';
-      });
+    function mostrarAba(id) {
+      document.querySelectorAll('.aba').forEach(aba => aba.classList.add('hidden'));
+      document.getElementById(id).classList.remove('hidden');
     }
   </script>
 </body>
