@@ -235,9 +235,9 @@
 <section id="orcamento" aria-label="Orçamento">
   <h2>📋 Gerar Orçamento</h2>
   <form id="form-orcamento" autocomplete="off">
-    <select name="select-cliente" required aria-label="Selecione cliente"></select>
-    <select name="select-servico" required aria-label="Selecione serviço"></select>
-    <input type="number" name="desconto" placeholder="Desconto (%)" min="0" max="100" step="1" />
+    <select id="select-cliente" name="cliente" required aria-label="Selecione cliente"></select>
+    <select id="select-servico" name="servico" required aria-label="Selecione serviço"></select>
+    <input type="number" id="desconto" name="desconto" placeholder="Desconto (%)" min="0" max="100" step="1" />
     <button type="submit">Salvar Orçamento 💾</button>
   </form>
 </section>
@@ -254,8 +254,9 @@
   </div>
 </section>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+  // Inicializa supabase
   const supabase = supabase.createClient(
     'https://zkdfimbfwgofkmmcvyfu.supabase.co',
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InprZGZpbGJmd2dvZmttbWN2eWZ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA2MzQxMTksImV4cCI6MjA2NjIxMDExOX0.vOTrEVYX30FpWPQykY5CF1QCfkyG5gDLnI_2N9TATRE'
@@ -270,38 +271,35 @@
       tab.classList.add('active');
       const target = tab.dataset.tab;
       sections.forEach(s => {
-        if (s.id === target) {
-          s.classList.add('active');
-        } else {
-          s.classList.remove('active');
-        }
+        s.classList.toggle('active', s.id === target);
       });
     });
   });
 
-  // Funções para carregar dados no frontend
+  // Carregar clientes e preencher lista + select
   async function carregarClientes() {
     const { data, error } = await supabase.from('clientes').select('*').order('nome');
     if (error) { alert('Erro ao carregar clientes: ' + error.message); return; }
     const lista = document.getElementById('lista-clientes');
-    const select = document.querySelector('select[name="select-cliente"]');
+    const select = document.getElementById('select-cliente');
     lista.innerHTML = '';
     select.innerHTML = '<option value="" disabled selected>Selecione o cliente</option>';
     data.forEach(c => {
       lista.innerHTML += `
         <li>
-          <div>${c.nome} ${c.carro ? '- ' + c.carro : ''} ${c.placa ? '(' + c.placa + ')' : ''}</div>
+          <div>${c.nome} ${c.carro ? '- ' + c.carro : ''} ${c.placa ? '('+c.placa+')' : ''}</div>
           <button onclick="excluirCliente(${c.id})" aria-label="Excluir cliente ${c.nome}">❌</button>
         </li>`;
       select.innerHTML += `<option value="${c.id}">${c.nome}</option>`;
     });
   }
 
+  // Carregar serviços e preencher lista + select
   async function carregarServicos() {
     const { data, error } = await supabase.from('servicos').select('*').order('descricao');
     if (error) { alert('Erro ao carregar serviços: ' + error.message); return; }
     const lista = document.getElementById('lista-servicos');
-    const select = document.querySelector('select[name="select-servico"]');
+    const select = document.getElementById('select-servico');
     lista.innerHTML = '';
     select.innerHTML = '<option value="" disabled selected>Selecione o serviço</option>';
     data.forEach(s => {
@@ -314,12 +312,19 @@
     });
   }
 
+  // Carregar orçamentos para histórico
   async function carregarOrcamentos() {
-    const { data, error } = await supabase.from('orcamentos').select(`
-      id, desconto, created_at,
-      clientes (id, nome, telefone, carro, placa),
-      servicos (id, descricao, valor)
-    `).order('created_at', { ascending: false });
+    const { data, error } = await supabase
+      .from('orcamentos')
+      .select(`
+        id,
+        desconto,
+        created_at,
+        clientes (id, nome, telefone, carro, placa),
+        servicos (id, descricao, valor)
+      `)
+      .order('created_at', { ascending: false });
+
     if (error) {
       alert('Erro ao carregar orçamentos: ' + error.message);
       return;
@@ -364,19 +369,27 @@ Rua 40, Travessa Recanto dos Pássaros
     });
   }
 
+  // Mostrar texto no box
   function mostrarOrcamento(texto) {
     document.getElementById('orcamento-box').textContent = texto;
+    // Navega para aba histórico para visualizar
+    tabs.forEach(t => t.classList.remove('active'));
+    sections.forEach(s => s.classList.remove('active'));
+    document.querySelector('nav button[data-tab="historico"]').classList.add('active');
+    document.getElementById('historico').classList.add('active');
   }
 
-  // Funções salvar e enviar (WhatsApp)
+  // Salvar texto como arquivo .txt
   function salvarTextoComoArquivo(texto, nomeArquivo) {
     const blob = new Blob([texto], {type: 'text/plain'});
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.download = nomeArquivo;
     link.click();
+    URL.revokeObjectURL(link.href);
   }
 
+  // Botões salvar/enviar - orçamento
   document.getElementById('btnSalvarOrcamento').addEventListener('click', () => {
     const texto = document.getElementById('orcamento-box').textContent;
     if (!texto) return alert('Visualize um orçamento antes de salvar!');
@@ -390,6 +403,7 @@ Rua 40, Travessa Recanto dos Pássaros
     window.open(url, '_blank');
   });
 
+  // Botões salvar/enviar - cupom (mesmo texto por enquanto, pode personalizar)
   document.getElementById('btnSalvarCupom').addEventListener('click', () => {
     const texto = document.getElementById('orcamento-box').textContent;
     if (!texto) return alert('Visualize um cupom antes de salvar!');
@@ -418,26 +432,28 @@ Rua 40, Travessa Recanto dos Pássaros
     else carregarServicos();
   }
 
-  // Form submissions
+  // Formulários submissão
   document.getElementById('form-clientes').addEventListener('submit', async e => {
     e.preventDefault();
-    const nome = e.target.nome.value.trim();
-    const telefone = e.target.telefone.value.trim();
-    const carro = e.target.carro.value.trim();
-    const placa = e.target.placa.value.trim();
+    const form = e.target;
+    const nome = form.nome.value.trim();
+    const telefone = form.telefone.value.trim();
+    const carro = form.carro.value.trim();
+    const placa = form.placa.value.trim();
 
     if (!nome) return alert('Nome é obrigatório');
     const { error } = await supabase.from('clientes').insert([{ nome, telefone, carro, placa }]);
     if (error) return alert('Erro ao salvar cliente: ' + error.message);
 
-    e.target.reset();
+    form.reset();
     carregarClientes();
   });
 
   document.getElementById('form-servicos').addEventListener('submit', async e => {
     e.preventDefault();
-    const descricao = e.target.descricao.value.trim();
-    const valor = parseFloat(e.target.valor.value);
+    const form = e.target;
+    const descricao = form.descricao.value.trim();
+    const valor = parseFloat(form.valor.value);
 
     if (!descricao) return alert('Descrição é obrigatória');
     if (isNaN(valor) || valor <= 0) return alert('Valor deve ser maior que zero');
@@ -445,28 +461,69 @@ Rua 40, Travessa Recanto dos Pássaros
     const { error } = await supabase.from('servicos').insert([{ descricao, valor }]);
     if (error) return alert('Erro ao salvar serviço: ' + error.message);
 
-    e.target.reset();
+    form.reset();
     carregarServicos();
   });
 
   document.getElementById('form-orcamento').addEventListener('submit', async e => {
     e.preventDefault();
-
-    const clienteId = parseInt(e.target['select-cliente'].value);
-    const servicoId = parseInt(e.target['select-servico'].value);
-    const desconto = parseFloat(e.target['desconto'].value) || 0;
+    const form = e.target;
+    const clienteId = parseInt(form.cliente.value);
+    const servicoId = parseInt(form.servico.value);
+    const desconto = parseFloat(form.desconto.value) || 0;
 
     if (!clienteId || !servicoId) return alert('Selecione cliente e serviço');
 
     const { error } = await supabase.from('orcamentos').insert([{ cliente_id: clienteId, servico_id: servicoId, desconto }]);
     if (error) return alert('Erro ao salvar orçamento: ' + error.message);
 
-    e.target.reset();
-    carregarOrcamentos();
+    form.reset();
+    await carregarOrcamentos();
     alert('Orçamento salvo com sucesso!');
+    // Vai para histórico e mostra o último orçamento salvo automaticamente
+    const { data: lastOrc, error: errLast } = await supabase
+      .from('orcamentos')
+      .select(`
+        id,
+        desconto,
+        created_at,
+        clientes (id, nome, telefone, carro, placa),
+        servicos (id, descricao, valor)
+      `)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (!errLast && lastOrc) {
+      const total = lastOrc.servicos.valor * (1 - (lastOrc.desconto || 0) / 100);
+      const orcTexto =
+`🧾 Orçamento R.M. Estética Automotiva 🧾
+
+==============================
+       R.M. ESTÉTICA AUTOMOTIVA
+==============================
+Data: ${new Date(lastOrc.created_at).toLocaleString()}
+Cliente: ${lastOrc.clientes.nome}
+Carro: ${lastOrc.clientes.carro || '-'} (${lastOrc.clientes.placa || '-'})
+------------------------------
+SERVIÇOS:
+- ${lastOrc.servicos.descricao}  R$ ${lastOrc.servicos.valor.toFixed(2)}
+------------------------------
+Desconto: ${lastOrc.desconto || 0}%
+Total: R$ ${total.toFixed(2)}
+------------------------------
+LOJA PARA CONTATO:
+Tel: 24 999486232
+Endereço:
+Rua 40, Travessa Recanto dos Pássaros
+==============================
+    Obrigado pela preferência!
+==============================`;
+      mostrarOrcamento(orcTexto);
+    }
   });
 
-  // Inicializar a aplicação
+  // Inicialização
   async function inicializar() {
     await carregarClientes();
     await carregarServicos();
@@ -474,6 +531,11 @@ Rua 40, Travessa Recanto dos Pássaros
   }
 
   inicializar();
+
+  // Expor funções para onclick inline no HTML
+  window.excluirCliente = excluirCliente;
+  window.excluirServico = excluirServico;
+  window.mostrarOrcamento = mostrarOrcamento;
 </script>
 
 </body>
