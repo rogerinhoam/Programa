@@ -6,7 +6,7 @@
     <title>R.M. Estética Automotiva - Gestão</title>
     
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#b30000">
+    <meta name="theme-color" content="#d32f2f">
     <link rel="apple-touch-icon" href="icon-192x192.png">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -219,7 +219,6 @@
 
         } catch (error) {
             showToast(`Erro ao carregar dados: ${error.message}`, 'error');
-            console.error(error);
         } finally {
             syncButton.classList.remove('syncing');
             syncButton.disabled = false;
@@ -228,7 +227,7 @@
 
     function renderLists() {
         document.getElementById('lista-clientes').innerHTML = state.clientes.map(c => `<li data-id="${c.id}"><div class="item-info">${c.nome}</div><div class="item-actions"><button title="Editar" data-action="edit" data-type="cliente">${icons.edit}</button><button title="Excluir" data-action="delete" data-type="cliente">${icons.delete}</button></div></li>`).join('') || `<li style="justify-content:center;">Nenhum cliente.</li>`;
-        document.getElementById('lista-servicos').innerHTML = state.servicos.map(s => `<li data-id="${s.id}"><div class="item-info">${s.descricao} - R$ ${s.valor}</div><div class="item-actions"><button title="Editar" data-action="edit" data-type="servico">${icons.edit}</button><button title="Excluir" data-action="delete" data-type="servico">${icons.delete}</button></div></li>`).join('') || `<li style="justify-content:center;">Nenhum serviço.</li>`;
+        document.getElementById('lista-servicos').innerHTML = state.servicos.map(s => `<li data-id="${s.id}"><div class="item-info">${s.descricao} - R$ ${s.valor}</div><div class="item-actions"><button title="Editar" data-action="edit" data-type="servico">${icons.edit}</button><button title="Excluir" data-action="delete" data-type="servico">${icons.delete}</button></div></li>`).join('') || `<li>Nenhum serviço.</li>`;
         document.getElementById('lista-historico').innerHTML = state.orcamentos.map(o => {
             const statusClass = `status-${o.status.replace(/\s+/g, '-')}`;
             return o.clientes ? `<li data-id="${o.id}"><div class="item-info"><strong>${o.clientes.nome}</strong> - R$ ${o.valor_total.toFixed(2)}</div><span class="status-badge ${statusClass}">${o.status}</span></li>` : ''
@@ -236,8 +235,8 @@
         
         const selCliente = document.getElementById('orcamento-cliente');
         const selServico = document.getElementById('servico-para-adicionar');
-        selCliente.innerHTML = '<option value="">Selecione...</option>' + state.clientes.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
-        selServico.innerHTML = '<option value="">Selecione...</option>' + state.servicos.map(s => `<option value="${s.id}" data-valor="${s.valor}">${s.descricao}</option>`).join('');
+        selCliente.innerHTML = '<option value="">Selecione um cliente</option>' + state.clientes.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
+        selServico.innerHTML = '<option value="">Selecione um serviço</option>' + state.servicos.map(s => `<option value="${s.id}" data-valor="${s.valor}">${s.descricao}</option>`).join('');
     }
 
     function renderServicosNoOrcamento() {
@@ -257,12 +256,12 @@
     async function handleFormSubmit(e) {
         e.preventDefault();
         const form = e.target;
-        const tableName = form.id.split('-')[1] + 's';
         const button = form.querySelector('button[type=submit]');
         const originalText = button.textContent;
         button.disabled = true;
         button.textContent = "SALVANDO...";
         
+        const tableName = form.id.split('-')[1] + 's';
         const idField = form.querySelector('input[type=hidden]');
         const id = idField?.value;
         const formData = new FormData(form);
@@ -333,7 +332,7 @@
 
         if (itensError) {
             showToast(`Erro ao salvar itens: ${itensError.message}`, 'error');
-            await supabase.from('orcamentos').delete().eq('id', orcamento.id); // Rollback
+            await supabase.from('orcamentos').delete().eq('id', orcamento.id);
         } else {
             showToast('Orçamento salvo com sucesso!', 'success');
             form.reset();
@@ -377,7 +376,6 @@ ${orc.formas_pagamento || 'Não especificado'}
         document.getElementById('historico-texto').textContent = textoOrcamento;
         detailsDiv.classList.remove('hidden');
 
-        // Lógica dos botões de ação
         document.getElementById('btn-gerar-orcamento-pdf').onclick = () => new jsPDF().text(textoOrcamento, 10, 10).save('orcamento.pdf');
         document.getElementById('btn-enviar-orcamento-whatsapp').onclick = () => window.open(`https://wa.me/?text=${encodeURIComponent(textoOrcamento)}`);
         document.getElementById('btn-delete-orcamento').onclick = () => handleDelete(orc.id, 'orcamento');
@@ -389,11 +387,17 @@ ${orc.formas_pagamento || 'Não especificado'}
             'Aprovado': 'Iniciar Serviço',
             'Em Andamento': 'Finalizar Serviço'
         };
+        const nextStatus = {
+            'Orçamento': 'Aprovado',
+            'Aprovado': 'Em Andamento',
+            'Em Andamento': 'Finalizado'
+        };
+        
         if(statusActions[orc.status]) {
             const btn = document.createElement('button');
             btn.className = 'btn-primary';
             btn.textContent = statusActions[orc.status];
-            btn.onclick = () => updateStatus(orc.id, Object.keys(statusActions)[Object.values(statusActions).indexOf(statusActions[orc.status]) + 1] || 'Finalizado');
+            btn.onclick = () => updateStatus(orc.id, nextStatus[orc.status]);
             statusControls.appendChild(btn);
         }
     }
@@ -401,14 +405,22 @@ ${orc.formas_pagamento || 'Não especificado'}
     async function updateStatus(id, newStatus) {
         const { error } = await supabase.from('orcamentos').update({ status: newStatus }).eq('id', id);
         if(error) { showToast(`Erro ao atualizar status: ${error.message}`, 'error'); }
-        else { showToast(`Status atualizado para ${newStatus}!`, 'success'); await loadAllData(); detailsDiv.classList.add('hidden'); }
+        else { 
+            showToast(`Status atualizado para ${newStatus}!`, 'success'); 
+            document.getElementById('historico-details').classList.add('hidden');
+            await loadAllData(); 
+        }
     }
 
     function handleDelete(id, type) {
         showConfirmationModal(`Tem certeza que quer excluir este ${type}?`, async () => {
             const { error } = await supabase.from(type + 's').delete().eq('id', id);
             if (error) { showToast(`Erro ao excluir: ${error.message}`, 'error'); }
-            else { showToast(`${type} excluído!`, 'success'); await loadAllData(); document.getElementById('historico-details').classList.add('hidden'); }
+            else { 
+                showToast(`${type} excluído!`, 'success'); 
+                document.getElementById('historico-details').classList.add('hidden');
+                await loadAllData(); 
+            }
         });
     }
 
@@ -455,9 +467,9 @@ ${orc.formas_pagamento || 'Não especificado'}
         document.getElementById('main-container').addEventListener('click', e => {
             const li = e.target.closest('li[data-id]');
             if (!li) return;
-            
             const button = e.target.closest('button[data-action]');
-            if(button){ // Ação de editar/deletar
+            
+            if(button){
                 e.stopPropagation();
                 const id = parseInt(li.dataset.id);
                 const type = button.dataset.type;
@@ -467,12 +479,12 @@ ${orc.formas_pagamento || 'Não especificado'}
                     const form = document.getElementById(`form-${type}`);
                     form.querySelector('input[type=hidden]').value = itemData.id;
                     Object.keys(itemData).forEach(key => { if(form[key]) form[key].value = itemData[key]; });
-                    document.querySelector(`button[data-tab="${type}s"]`)?.click();
+                    document.querySelector(`button[data-tab="${type}s"]`).click();
                     window.scrollTo(0, 0);
                 } else if (button.dataset.action === 'delete') {
                     handleDelete(id, type);
                 }
-            } else if (li.parentElement.id === 'lista-historico') { // Clicou no item do histórico
+            } else if (li.parentElement.id === 'lista-historico') {
                 const orcamentoId = parseInt(li.dataset.id);
                 state.orcamentoAtual = state.orcamentos.find(o => o.id === orcamentoId);
                 document.querySelectorAll('#lista-historico li').forEach(item => item.classList.remove('selected'));
