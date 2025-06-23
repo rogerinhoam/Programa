@@ -2,7 +2,7 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 
 const supabase = createClient(
   'https://zkdfimbfwgofkmmcvyfu.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz...'
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzI...'
 );
 
 window.cadastrarCliente = async () => {
@@ -98,3 +98,4 @@ window.onload = () => {
   carregarServicos();
   carregarHistorico();
 };
+
