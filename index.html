@@ -169,7 +169,7 @@
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('/sw.js')
                 .then(registration => console.log('Service Worker registrado com sucesso:', registration))
-                .catch(error => console.log('Falha ao registrar Service Worker:', error));
+                .catch(error => console.error('Falha ao registrar Service Worker:', error));
         });
     }
 </script>
@@ -178,6 +178,7 @@
     const { jsPDF } = window.jspdf;
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
+    // --- CONFIGURAÇÃO E ESTADO ---
     const supabaseUrl = 'https://zkdfimbfwgofkmmcvyfu.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InprZGZpbWJmd2dvZmttbWN2eWZ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA2MzQxMTksImV4cCI6MjA2NjIxMDExOX0.vOTrEVYX30FpWPQykY5CF1QCfkyG5gDLnI_2N9TATRE';
     const supabase = createClient(supabaseUrl, supabaseKey);
@@ -219,6 +220,7 @@
         view: `<svg viewBox="0 0 24 24"><path fill="currentColor" d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-2 16H8v-2h4v2zm0-4H8v-2h4v2zm4-4H8V8h8v2z"/></svg>`
     };
 
+    // --- FUNÇÕES UTILITÁRIAS ---
     function showToast(message, type = 'success') {
         const toast = document.createElement('div');
         toast.className = `toast ${type}`;
@@ -259,24 +261,25 @@
         DOMElements.btnEnviarReciboWhats.disabled = !enabled;
     }
 
+    // --- FUNÇÕES DE RENDERIZAÇÃO ---
     function renderClientes(filter = '') {
         const lowerFilter = filter.toLowerCase();
         const filtered = state.clientes.filter(c => c.nome.toLowerCase().includes(lowerFilter) || (c.carro || '').toLowerCase().includes(lowerFilter) || (c.placa || '').toLowerCase().includes(lowerFilter));
-        DOMElements.listaClientes.innerHTML = filtered.map(c => `<li data-id="${c.id}"><div class="item-info">${c.nome} — ${c.carro || '-'} — ${c.placa || '-'}</div><div class="item-actions"><button title="Editar" data-action="edit">${icons.edit}</button><button title="Excluir" data-action="delete">${icons.delete}</button></div></li>`).join('') || `<li>Nenhum cliente encontrado.</li>`;
+        DOMElements.listaClientes.innerHTML = filtered.map(c => `<li data-id="${c.id}"><div class="item-info">${c.nome} — ${c.carro || '-'} — ${c.placa || '-'}</div><div class="item-actions"><button title="Editar" data-action="edit">${icons.edit}</button><button title="Excluir" data-action="delete">${icons.delete}</button></div></li>`).join('') || `<li style="justify-content: center;">Nenhum cliente encontrado.</li>`;
     }
 
     function renderServicos(filter = '') {
         const lowerFilter = filter.toLowerCase();
         const filtered = state.servicos.filter(s => s.descricao.toLowerCase().includes(lowerFilter));
-        DOMElements.listaServicos.innerHTML = filtered.map(s => `<li data-id="${s.id}"><div class="item-info">${s.descricao} — R$ ${parseFloat(s.valor).toFixed(2)}</div><div class="item-actions"><button title="Editar" data-action="edit">${icons.edit}</button><button title="Excluir" data-action="delete">${icons.delete}</button></div></li>`).join('') || `<li>Nenhum serviço encontrado.</li>`;
+        DOMElements.listaServicos.innerHTML = filtered.map(s => `<li data-id="${s.id}"><div class="item-info">${s.descricao} — R$ ${parseFloat(s.valor).toFixed(2)}</div><div class="item-actions"><button title="Editar" data-action="edit">${icons.edit}</button><button title="Excluir" data-action="delete">${icons.delete}</button></div></li>`).join('') || `<li style="justify-content: center;">Nenhum serviço encontrado.</li>`;
     }
 
     function renderOrcamentos() {
         DOMElements.listaOrcamentos.innerHTML = state.orcamentos.map(o => {
-            if (!o.clientes || !o.servicos) return '';
+            if (!o.clientes || !o.servicos) return ''; // Proteção contra dados órfãos
             const total = o.servicos.valor * (1 - (o.desconto || 0) / 100);
             return `<li data-id="${o.id}"><div class="item-info">${o.clientes.nome} — ${o.servicos.descricao} — Total: R$ ${total.toFixed(2)}</div><div class="item-actions"><button title="Ver Detalhes" data-action="view">${icons.view}</button><button title="Excluir" data-action="delete">${icons.delete}</button></div></li>`;
-        }).join('') || `<li>Nenhum orçamento salvo.</li>`;
+        }).join('') || `<li style="justify-content: center;">Nenhum orçamento salvo.</li>`;
     }
 
     function renderSelectOptions(selectElement, items, valueField, textField) {
@@ -293,12 +296,14 @@
         selectElement.value = currentValue;
     }
 
+    // --- LÓGICA DE DADOS (API) ---
     async function fetchData(tableName, orderOptions) {
         try {
             const { data, error } = await supabase.from(tableName).select('*').order(orderOptions.column, { ascending: orderOptions.ascending });
             if (error) throw error;
-            return data;
+            return data || [];
         } catch (error) {
+            console.error(`Erro ao carregar ${tableName}:`, error);
             showToast(`Erro de rede ao carregar ${tableName}.`, 'error');
             return [];
         }
@@ -308,8 +313,9 @@
         try {
             const { data, error } = await supabase.from('orcamentos').select(`*, clientes(*), servicos(*)`).order('created_at', { ascending: false });
             if (error) throw error;
-            return data;
+            return data || [];
         } catch (error) {
+            console.error('Erro ao carregar orçamentos:', error);
             showToast('Erro de rede ao carregar orçamentos.', 'error');
             return [];
         }
@@ -330,16 +336,26 @@
         renderSelectOptions(DOMElements.selectServico, state.servicos, 'id', s => `${s.descricao} — R$ ${parseFloat(s.valor).toFixed(2)}`);
     }
 
+    // --- HANDLERS DE AÇÕES (EVENTOS) ---
     async function handleSaveCliente(e) {
         e.preventDefault();
         const form = DOMElements.formCliente; setFormLoading(form, true);
         const id = form['cliente-id'].value;
         const clienteData = { nome: form['cliente-nome'].value.trim(), telefone: form['cliente-telefone'].value.trim(), carro: form['cliente-carro'].value.trim(), placa: form['cliente-placa'].value.trim() };
         if (!clienteData.nome) { showToast('Nome é obrigatório', 'error'); setFormLoading(form, false); return; }
-        const { error } = id ? await supabase.from('clientes').update(clienteData).eq('id', id) : await supabase.from('clientes').insert(clienteData);
-        if (error) { showToast(`Erro ao salvar cliente: ${error.message}`, 'error'); }
-        else { showToast(`Cliente ${id ? 'atualizado' : 'cadastrado'}!`, 'success'); form.reset(); form['cliente-id'].value = ''; await loadAndRenderAll(); }
-        setFormLoading(form, false);
+        try {
+            const { error } = id ? await supabase.from('clientes').update(clienteData).eq('id', id) : await supabase.from('clientes').insert(clienteData);
+            if (error) throw error;
+            showToast(`Cliente ${id ? 'atualizado' : 'cadastrado'}!`, 'success');
+            form.reset();
+            form['cliente-id'].value = '';
+            await loadAndRenderAll();
+        } catch (error) {
+            console.error('Erro ao salvar cliente:', error);
+            showToast(`Erro ao salvar cliente: ${error.message}`, 'error');
+        } finally {
+            setFormLoading(form, false);
+        }
     }
 
     function handleEditCliente(id) {
@@ -358,10 +374,19 @@
         const valor = parseFloat(form['servico-valor'].value);
         const servicoData = { descricao: form['servico-descricao'].value.trim(), valor: isNaN(valor) ? 0 : valor };
         if (!servicoData.descricao || servicoData.valor <= 0) { showToast('Descrição e valor válido são obrigatórios.', 'error'); setFormLoading(form, false); return; }
-        const { error } = id ? await supabase.from('servicos').update(servicoData).eq('id', id) : await supabase.from('servicos').insert(servicoData);
-        if (error) { showToast(`Erro ao salvar serviço: ${error.message}`, 'error'); }
-        else { showToast(`Serviço ${id ? 'atualizado' : 'cadastrado'}!`, 'success'); form.reset(); form['servico-id'].value = ''; await loadAndRenderAll(); }
-        setFormLoading(form, false);
+        try {
+            const { error } = id ? await supabase.from('servicos').update(servicoData).eq('id', id) : await supabase.from('servicos').insert(servicoData);
+            if (error) throw error;
+            showToast(`Serviço ${id ? 'atualizado' : 'cadastrado'}!`, 'success');
+            form.reset();
+            form['servico-id'].value = '';
+            await loadAndRenderAll();
+        } catch(error) {
+            console.error('Erro ao salvar serviço:', error);
+            showToast(`Erro ao salvar serviço: ${error.message}`, 'error');
+        } finally {
+            setFormLoading(form, false);
+        }
     }
 
     function handleEditServico(id) {
@@ -379,15 +404,26 @@
         const formasPagamento = Array.from(form.querySelectorAll('input[name="pagamento"]:checked')).map(cb => cb.value);
         const orcamentoData = { cliente_id: form['orcamento-cliente'].value, servico_id: form['orcamento-servico'].value, desconto: parseFloat(form['orcamento-desconto'].value) || 0, formas_pagamento: formasPagamento.join(', ') };
         if (!orcamentoData.cliente_id || !orcamentoData.servico_id) { showToast('Selecione um cliente e um serviço.', 'error'); setFormLoading(form, false); return; }
-        const { error } = await supabase.from('orcamentos').insert(orcamentoData);
-        if (error) { showToast(`Erro ao salvar orçamento: ${error.message}`, 'error'); }
-        else { showToast('Orçamento salvo!', 'success'); form.reset(); form['orcamento-desconto'].value = 0; await loadAndRenderAll(); DOMElements.nav.querySelector('[data-tab="orcamentos"]').click(); }
-        setFormLoading(form, false);
+        try {
+            const { error } = await supabase.from('orcamentos').insert(orcamentoData);
+            if (error) throw error;
+            showToast('Orçamento salvo!', 'success');
+            form.reset();
+            Array.from(form.querySelectorAll('input[name="pagamento"]')).forEach(cb => cb.checked = false);
+            form['orcamento-desconto'].value = 0;
+            await loadAndRenderAll();
+            DOMElements.nav.querySelector('[data-tab="orcamentos"]').click();
+        } catch (error) {
+            console.error('Erro ao salvar orçamento:', error);
+            showToast(`Erro ao salvar orçamento: ${error.message}`, 'error');
+        } finally {
+            setFormLoading(form, false);
+        }
     }
 
     function handleViewOrcamento(id) {
         const orc = state.orcamentos.find(o => o.id == id);
-        if (!orc) return showToast('Orçamento não encontrado.', 'error');
+        if (!orc) { showToast('Orçamento não encontrado.', 'error'); return; }
         state.orcamentoAtual = orc;
         const dt = new Date(orc.created_at); const dataFormatada = dt.toLocaleDateString('pt-BR');
         const valorOriginal = orc.servicos.valor; const descontoValor = valorOriginal * (orc.desconto / 100); const valorFinal = valorOriginal - descontoValor;
@@ -400,4 +436,99 @@
 
     function handleGerarRecibo() {
         if (!state.orcamentoAtual) { return showToast('Selecione um orçamento primeiro.', 'error'); }
-        const orc = state.orc
+        const orc = state.orcamentoAtual;
+        const dt = new Date(); const dataFormatada = dt.toLocaleDateString('pt-BR');
+        const valorFinal = orc.servicos.valor * (1 - (orc.desconto / 100));
+        state.textoReciboAtual = `RECIBO DE SERVIÇO (CUPOM NÃO FISCAL)\n=====================================\nData da Finalização: ${dataFormatada}\nCliente: ${orc.clientes.nome}\nVeículo: ${orc.clientes.carro || '-'} (Placa: ${orc.clientes.placa || '-'})\n=====================================\nSERVIÇO REALIZADO:\n- ${orc.servicos.descricao}\n=====================================\nPAGAMENTO:\n- VALOR PAGO: .......... R$ ${valorFinal.toFixed(2)}\n- Forma de Pagamento: .. ${orc.formas_pagamento || 'Não especificado'}\n=====================================\nDeclaramos que o serviço acima foi\nconcluído e o pagamento recebido.\n\nA R.M. Estética Automotiva agradece\na sua confiança e preferência!\nVolte sempre!\n=====================================\nContato: (24) 99948-6232`;
+        DOMElements.historicoTexto.textContent = state.textoReciboAtual;
+        showToast('Recibo de serviço gerado!', 'success');
+    }
+
+    function handleDelete(id, tableName, itemName) {
+        showConfirmationModal(`Tem certeza que deseja excluir este ${itemName}? A ação não pode ser desfeita.`, async () => {
+            try {
+                const { error } = await supabase.from(tableName).delete().eq('id', id);
+                if (error) throw error;
+                showToast(`${itemName} excluído com sucesso.`, 'success');
+                // Se um orçamento for excluído, limpa a tela de histórico se for o orçamento atual
+                if(tableName === 'orcamentos' && state.orcamentoAtual && state.orcamentoAtual.id == id) {
+                    DOMElements.historicoTexto.textContent = 'Selecione um orçamento na aba "Orçamentos" para ver os detalhes aqui.';
+                    setHistoryButtonsState(false);
+                }
+                await loadAndRenderAll();
+            } catch(error) {
+                console.error(`Erro ao excluir ${itemName}:`, error);
+                showToast(`Erro ao excluir ${itemName}: ${error.message}`, 'error');
+            }
+        });
+    }
+
+    function handleGerarPdf(texto, nomeArquivo) {
+        if (!texto) return showToast('Nenhum texto para gerar PDF.', 'error');
+        try {
+            const doc = new jsPDF();
+            doc.setFont('Courier', 'normal'); doc.setFontSize(10); doc.text(texto, 10, 10);
+            doc.save(nomeArquivo);
+            showToast('PDF gerado com sucesso!', 'success');
+        } catch (error) {
+            console.error("Erro ao gerar PDF:", error);
+            showToast("Não foi possível gerar o PDF.", "error");
+        }
+    }
+
+    function handleEnviarWhatsApp(texto) {
+        if (!texto) return showToast('Nenhum texto para enviar.', 'error');
+        const textoURI = encodeURIComponent(texto);
+        window.open(`https://wa.me/?text=${textoURI}`, '_blank');
+    }
+
+    // --- SETUP DOS EVENT LISTENERS ---
+    function setupEventListeners() {
+        DOMElements.nav.addEventListener('click', (e) => {
+            if (e.target.tagName !== 'BUTTON') return;
+            const tabId = e.target.dataset.tab;
+            DOMElements.tabs.forEach(btn => btn.classList.remove('active'));
+            e.target.classList.add('active');
+            DOMElements.tabContents.forEach(tc => tc.classList.add('hidden'));
+            document.getElementById(tabId).classList.remove('hidden');
+        });
+
+        DOMElements.formCliente.addEventListener('submit', handleSaveCliente);
+        DOMElements.formServico.addEventListener('submit', handleSaveServico);
+        DOMElements.formOrcamento.addEventListener('submit', handleSaveOrcamento);
+
+        DOMElements.searchClientes.addEventListener('input', e => renderClientes(e.target.value));
+        DOMElements.searchServicos.addEventListener('input', e => renderServicos(e.target.value));
+        
+        const createListHandler = (editHandler, deleteHandler, viewHandler) => (e) => {
+            const button = e.target.closest('button[data-action]');
+            if (!button) return;
+            const id = button.closest('li').dataset.id;
+            const action = button.dataset.action;
+            if (action === 'edit' && editHandler) editHandler(id);
+            if (action === 'delete' && deleteHandler) deleteHandler(id);
+            if (action === 'view' && viewHandler) viewHandler(id);
+        };
+
+        DOMElements.listaClientes.addEventListener('click', createListHandler(handleEditCliente, (id) => handleDelete(id, 'clientes', 'cliente')));
+        DOMElements.listaServicos.addEventListener('click', createListHandler(handleEditServico, (id) => handleDelete(id, 'serviços', 'serviço')));
+        DOMElements.listaOrcamentos.addEventListener('click', createListHandler(null, (id) => handleDelete(id, 'orcamentos', 'orçamento'), handleViewOrcamento));
+        
+        DOMElements.btnGerarOrcamentoPDF.addEventListener('click', () => handleGerarPdf(state.textoOrcamentoAtual, 'orcamento_rm_estetica.pdf'));
+        DOMElements.btnEnviarOrcamentoWhats.addEventListener('click', () => handleEnviarWhatsApp(state.textoOrcamentoAtual));
+        DOMElements.btnGerarReciboPDF.addEventListener('click', () => { if (!state.textoReciboAtual) handleGerarRecibo(); if (state.textoReciboAtual) handleGerarPdf(state.textoReciboAtual, 'recibo_rm_estetica.pdf'); });
+        DOMElements.btnEnviarReciboWhats.addEventListener('click', () => { if (!state.textoReciboAtual) handleGerarRecibo(); if (state.textoReciboAtual) handleEnviarWhatsApp(state.textoReciboAtual); });
+    }
+
+    // --- INICIALIZAÇÃO DA APLICAÇÃO ---
+    async function init() {
+        console.log("Iniciando aplicação...");
+        setupEventListeners();
+        await loadAndRenderAll();
+        console.log("Aplicação pronta.");
+    }
+
+    init();
+</script>
+</body>
+</html>
