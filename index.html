@@ -1,0 +1,1201 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Estúdio Gold Pro V8 - Cardápio Gourmet</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Poppins:wght@300;400;600;700;800;900&family=Bebas+Neue&family=Dancing+Script:wght@700&family=Montserrat:wght@900&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Cinzel:wght@700&family=Bodoni+Moda:wght@700&family=Cormorant+Garamond:wght@700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'script': ['Pacifico', 'cursive'],
+                        'body': ['Poppins', 'sans-serif'],
+                        'bebas': ['Bebas Neue', 'sans-serif'],
+                        'dancing': ['Dancing Script', 'cursive'],
+                        'montserrat': ['Montserrat', 'sans-serif'],
+                        'playfair': ['Playfair Display', 'serif'],
+                        'cinzel': ['Cinzel', 'serif'],
+                        'bodoni': ['Bodoni Moda', 'serif'],
+                        'cormorant': ['Cormorant Garamond', 'serif'],
+                    },
+                }
+            }
+        }
+    </script>
+
+    <style>
+        :root {
+            --brand-color: #D4AF37;
+            --brand-light: #F5E6CC;
+            --brand-dark: #5D4037;
+            --secondary: #C41E3A;
+            --accent: #2E7D32;
+        }
+
+        * { user-select: none; -webkit-user-select: none; }
+        
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: var(--brand-color); border-radius: 4px; }
+
+        body { font-family: 'Poppins', sans-serif; overflow-x: hidden; }
+
+        #workspace {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            overflow: hidden;
+            position: relative;
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+        }
+
+        #art-board {
+            width: 1080px;
+            height: 1920px;
+            background: white;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.35);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.9);
+            overflow: hidden;
+            border-radius: 8px;
+        }
+
+        @media (max-width: 768px) {
+            #art-board {
+                transform: translate(-50%, -50%) scale(0.20);
+                width: 1080px;
+                height: 1920px;
+            }
+            #workspace {
+                min-height: 500px;
+            }
+        }
+
+        .draggable {
+            cursor: grab;
+            position: absolute;
+            z-index: 50;
+            touch-action: none;
+            transition: all 0.15s ease;
+            border-radius: 4px;
+        }
+        
+        .draggable:hover { outline: 2px dashed rgba(212,175,55,0.5); }
+        .draggable.selected { 
+            outline: 3px solid var(--brand-color);
+            box-shadow: 0 0 15px rgba(212,175,55,0.4);
+            z-index: 100 !important;
+        }
+
+        .glass-item { 
+            border: 1px solid rgba(255,255,255, 0.95);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .glass-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+        }
+
+        input[type=range] { accent-color: var(--brand-color); }
+
+        button.tab-active { 
+            color: var(--brand-color) !important; 
+            border-bottom: 3px solid var(--brand-color) !important; 
+            background-color: rgba(255,255,255,0.05);
+        }
+        button.tab-inactive { 
+            color: #999 !important; 
+            border-bottom: 3px solid transparent !important; 
+        }
+
+        .gradient-bg { background: linear-gradient(135deg, var(--brand-color) 0%, var(--brand-dark) 100%); }
+
+        .pattern-dots {
+            background-image: radial-gradient(rgba(0,0,0,0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .pattern-lines {
+            background: repeating-linear-gradient(45deg, rgba(0,0,0,0.05), rgba(0,0,0,0.05) 10px, transparent 10px, transparent 20px);
+        }
+        .pattern-geo {
+            background-image: linear-gradient(30deg, #00000005 12%, transparent 12.5%, transparent 87%, #00000005 87.5%, #00000005),
+            linear-gradient(150deg, #00000005 12%, transparent 12.5%, transparent 87%, #00000005 87.5%, #00000005),
+            linear-gradient(30deg, #00000005 12%, transparent 12.5%, transparent 87%, #00000005 87.5%, #00000005),
+            linear-gradient(150deg, #00000005 12%, transparent 12.5%, transparent 87%, #00000005 87.5%, #00000005),
+            linear-gradient(60deg, #00000008 25%, transparent 25.5%, transparent 75%, #00000008 75%, #00000008), 
+            linear-gradient(60deg, #00000008 25%, transparent 25.5%, transparent 75%, #00000008 75%, #00000008);
+            background-size: 80px 140px;
+        }
+
+        #stickers-layer { z-index: 60; }
+        .sticker-item { z-index: 61; }
+        
+        .btn-layout-active { background-color: #374151; color: white; border-color: var(--brand-color); }
+        .btn-layout-inactive { background-color: transparent; color: #9ca3af; border-color: #4b5563; }
+
+        /* Mobile Otimizações */
+        @media (max-width: 640px) {
+            header { height: 14 !important; padding: 0.5rem 1rem !important; }
+            header h1 { font-size: 1.125rem !important; }
+            header p { font-size: 0.625rem !important; }
+            
+            #control-panel {
+                overflow-y: auto;
+                max-height: calc(100vh - 56px);
+                z-index: 40;
+            }
+
+            .hidden.md\:relative { position: fixed !important; }
+            
+            aside .p-6 { padding: 1rem !important; }
+            .space-y-6 > * + * { margin-top: 1.5rem !important; }
+
+            input, select, button { 
+                font-size: 16px !important;
+                padding: 0.75rem !important;
+            }
+
+            #workspace {
+                min-height: 400px;
+            }
+        }
+
+        .fade-in { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .5; }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-800 h-screen flex flex-col overflow-hidden">
+
+    <!-- HEADER -->
+    <header class="bg-gradient-to-r from-gray-950 to-gray-900 border-b border-gray-700 h-16 flex items-center justify-between px-4 sm:px-6 z-20 shadow-xl">
+        <div class="flex items-center gap-2 sm:gap-3">
+            <div class="gradient-bg text-white w-10 h-10 rounded-lg flex items-center justify-center font-black text-lg shadow-lg">G</div>
+            <div class="hidden sm:block">
+                <h1 class="font-black text-xl text-white tracking-tight">Estúdio Gold</h1>
+                <p class="text-xs text-gray-400">Pro V8</p>
+            </div>
+            <div class="sm:hidden">
+                <h1 class="font-black text-sm text-white tracking-tight">Gold</h1>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <button onclick="toggleMobilePanel()" class="sm:hidden p-2 text-brand hover:bg-gray-800 rounded-lg transition">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
+            <button id="downloadBtn" onclick="generateImage()" class="px-3 sm:px-4 py-2 gradient-bg text-white font-bold rounded-lg shadow-lg hover:shadow-xl transition flex items-center gap-2 text-xs sm:text-sm">
+                <i class="fas fa-download"></i> <span class="hidden sm:inline">Baixar</span>
+            </button>
+            <button onclick="showMoreMenu()" class="p-2 text-brand hover:bg-gray-800 rounded-lg transition hidden sm:block">
+                <i class="fas fa-ellipsis-v text-lg"></i>
+            </button>
+        </div>
+        <input type="file" id="importFile" class="hidden" accept=".json">
+    </header>
+
+    <!-- MENU ADICIONAL (DESKTOP) -->
+    <div id="moreMenu" class="hidden absolute top-16 right-6 bg-gray-900 border border-gray-700 rounded-lg shadow-xl z-50 min-w-40">
+        <button onclick="exportJSON()" class="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 flex items-center gap-2">
+            <i class="fas fa-download"></i> Exportar JSON
+        </button>
+        <button onclick="importJSON()" class="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 flex items-center gap-2">
+            <i class="fas fa-upload"></i> Importar JSON
+        </button>
+        <hr class="border-gray-700">
+        <button onclick="resetLayout()" class="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-800 flex items-center gap-2">
+            <i class="fas fa-undo"></i> Restaurar Padrão
+        </button>
+    </div>
+
+    <!-- LAYOUT PRINCIPAL -->
+    <main class="flex-1 flex overflow-hidden relative">
+        
+        <!-- CONTROLES MÓVEL -->
+        <div id="mobilePanel" class="hidden fixed inset-0 z-30 bg-black/50 sm:hidden" onclick="closePanels()"></div>
+
+        <!-- CONTROLES ESQUERDA -->
+        <aside class="w-full sm:w-96 bg-gray-950 border-r border-gray-700 flex flex-col shadow-2xl z-40 absolute sm:relative h-full transition-all transform -translate-x-full sm:translate-x-0" id="control-panel">
+            
+            <button onclick="closePanels()" class="sm:hidden absolute top-4 right-4 p-2 text-gray-400 hover:text-white z-50">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+
+            <!-- TABS -->
+            <div class="flex border-b border-gray-700 bg-gray-950">
+                <button onclick="switchTab('data')" id="tab-data" class="flex-1 py-4 font-bold text-xs sm:text-sm hover:bg-gray-900 transition tab-active">
+                    <i class="fas fa-database mr-1 sm:mr-2"></i> <span class="hidden sm:inline">Dados</span>
+                </button>
+                <button onclick="switchTab('design')" id="tab-design" class="flex-1 py-4 font-bold text-xs sm:text-sm hover:bg-gray-900 transition tab-inactive">
+                    <i class="fas fa-wand-magic-sparkles mr-1 sm:mr-2"></i> <span class="hidden sm:inline">Design</span>
+                </button>
+                <button onclick="switchTab('advanced')" id="tab-advanced" class="flex-1 py-4 font-bold text-xs sm:text-sm hover:bg-gray-900 transition tab-inactive">
+                    <i class="fas fa-sliders-h mr-1 sm:mr-2"></i> <span class="hidden sm:inline">Avançado</span>
+                </button>
+            </div>
+
+            <!-- DADOS -->
+            <div id="content-data" class="p-4 sm:p-6 space-y-4 sm:space-y-6 overflow-y-auto flex-1">
+                
+                <div class="bg-gray-900 p-4 sm:p-5 rounded-lg border border-gray-700 space-y-3 sm:space-y-4">
+                    <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest">📋 Informações</h3>
+                    <input type="text" id="customDate" placeholder="Data (Ex: 01/02)" class="w-full bg-gray-800 border border-gray-600 text-white rounded-lg p-3 text-sm focus:border-brand outline-none transition" oninput="updateArt()">
+                    <input type="text" id="dailyMessage" placeholder="Frase (Ex: Geladinhos Gourmet)" class="w-full bg-gray-800 border border-gray-600 text-white rounded-lg p-3 text-sm focus:border-brand outline-none transition" oninput="updateMessage()">
+                    <input type="text" id="pixKey" placeholder="Chave Pix" class="w-full bg-gray-800 border border-gray-600 text-white rounded-lg p-3 text-sm font-mono focus:border-brand outline-none transition" oninput="updatePix()">
+                </div>
+
+                <div class="space-y-3 sm:space-y-4">
+                    <div class="flex justify-between items-center px-1">
+                        <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest">🍨 Sabores</h3>
+                        <button onclick="resetForm()" class="text-xs text-brand hover:text-brand-light font-bold underline">+ Novo</button>
+                    </div>
+                    
+                    <form id="flavorForm" class="bg-gradient-to-br from-gray-800 to-gray-900 p-4 rounded-lg border border-gray-700 space-y-3 shadow-lg">
+                        <div class="flex gap-2">
+                            <input type="text" id="fName" placeholder="Nome" class="flex-1 bg-gray-700 border border-gray-600 text-white rounded p-2 text-sm focus:border-brand outline-none" required>
+                            <input type="number" step="0.50" id="fPrice" placeholder="R$" class="w-20 sm:w-24 bg-gray-700 border border-gray-600 text-white rounded p-2 text-sm focus:border-brand outline-none" required>
+                        </div>
+                        
+                        <label class="flex items-center justify-center gap-2 bg-gray-700 hover:bg-gray-600 border-2 border-dashed border-gray-600 p-3 rounded cursor-pointer text-xs sm:text-sm text-gray-300 transition">
+                            <i class="fas fa-image"></i> Foto
+                            <input type="file" id="fImage" accept="image/*" class="hidden" onchange="previewFlavorImage(this)">
+                        </label>
+                        
+                        <button type="submit" class="w-full gradient-bg text-white py-2 rounded font-bold hover:shadow-lg transition text-sm">Adicionar Sabor</button>
+                    </form>
+
+                    <ul id="flavorList" class="space-y-2 max-h-48 sm:max-h-64 overflow-y-auto pr-1"></ul>
+                </div>
+            </div>
+
+            <!-- DESIGN -->
+            <div id="content-design" class="hidden p-4 sm:p-6 space-y-4 sm:space-y-6 overflow-y-auto flex-1">
+                
+                <div class="bg-gray-900 p-4 sm:p-5 rounded-lg border border-gray-700">
+                    <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">🎨 Estilo</h3>
+                    
+                    <div class="grid grid-cols-2 gap-3 mb-4">
+                        <div>
+                            <label class="text-xs font-bold text-gray-400 block mb-2">Cor 1</label>
+                            <input type="color" id="brandColorInput" value="#D4AF37" oninput="updateBrandColor(this.value)" class="w-full h-10 p-0 border border-gray-600 rounded cursor-pointer">
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-400 block mb-2">Cor 2</label>
+                            <input type="color" id="secondaryColorInput" value="#C41E3A" oninput="updateSecondaryColor(this.value)" class="w-full h-10 p-0 border border-gray-600 rounded cursor-pointer">
+                        </div>
+                    </div>
+
+                    <select id="fontFamilyInput" onchange="updateFontFamily(this.value)" class="w-full bg-gray-800 border border-gray-600 text-white rounded p-2 text-sm font-bold focus:border-brand outline-none mb-4">
+                        <option value="Playfair Display">Elegante - Playfair</option>
+                        <option value="Cormorant Garamond">Luxo - Cormorant</option>
+                        <option value="Cinzel">Clássico - Cinzel</option>
+                        <option value="Bodoni Moda">Sofisticado - Bodoni</option>
+                        <option value="Dancing Script">Cursiva Fina</option>
+                        <option value="Montserrat">Moderno Bold</option>
+                    </select>
+                </div>
+
+                <div class="bg-gray-900 p-4 sm:p-5 rounded-lg border border-gray-700">
+                    <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">🖼️ Fundo & Logo</h3>
+                    
+                    <div class="flex gap-2 mb-3 flex-wrap">
+                        <label class="flex-1 min-w-24 flex items-center justify-center gap-1 sm:gap-2 bg-gray-800 hover:bg-gray-700 border border-gray-600 p-2 rounded cursor-pointer text-xs text-gray-300 transition">
+                            <i class="fas fa-upload"></i> <span class="hidden sm:inline">Logo</span>
+                            <input type="file" id="mainLogoInput" accept="image/*" class="hidden" onchange="uploadMainLogo(this)">
+                        </label>
+                        <label class="flex-1 min-w-24 flex items-center justify-center gap-1 sm:gap-2 bg-gray-800 hover:bg-gray-700 border border-gray-600 p-2 rounded cursor-pointer text-xs text-gray-300 transition">
+                            <i class="fas fa-image"></i> <span class="hidden sm:inline">Fundo</span>
+                            <input type="file" id="bgImageInput" accept="image/*" class="hidden" onchange="uploadBgImage(this)">
+                        </label>
+                        <button onclick="clearBgImage()" class="px-2 sm:px-3 bg-red-600 hover:bg-red-700 text-white rounded text-xs font-bold">X</button>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div>
+                            <label class="text-xs font-bold text-gray-400 flex justify-between mb-1"><span>Logo Tamanho</span> <span id="val-scale">100%</span></label>
+                            <input type="range" id="logo-scale-input" min="30" max="250" value="100" class="w-full" oninput="adjustLogoScale(this.value)">
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-400 flex justify-between mb-1"><span>Fundo Opacidade</span> <span id="val-bg-opacity">50%</span></label>
+                            <input type="range" min="0" max="100" value="50" class="w-full" oninput="adjustBgOpacity(this.value)">
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-400 flex justify-between mb-1"><span>Textura</span></label>
+                            <select onchange="updateTexture(this.value)" class="w-full bg-gray-800 border border-gray-600 text-white rounded p-2 text-xs">
+                                <option value="none">Nenhuma</option>
+                                <option value="pattern-dots">Pontilhado</option>
+                                <option value="pattern-lines">Linhas</option>
+                                <option value="pattern-geo">Geométrico</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Adesivos -->
+                <div class="bg-gradient-to-br from-yellow-900 to-yellow-950 p-4 sm:p-5 rounded-lg border border-yellow-600">
+                    <h3 class="text-xs font-black text-yellow-100 uppercase tracking-widest mb-4">⭐ Adesivos</h3>
+                    <div id="sticker-controls" class="mb-4 bg-black/30 p-2 rounded border border-yellow-700">
+                        <label class="flex justify-between text-xs text-yellow-100 font-bold mb-1"><span>Tamanho</span> <span id="val-sticker-scale">100%</span></label>
+                        <input type="range" id="sticker-scale-input" min="30" max="300" value="100" class="w-full accent-yellow-500" oninput="adjustSelectedStickerScale(this.value)" disabled>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        <button onclick="addSticker('promo')" class="bg-red-600 hover:bg-red-700 text-white text-[10px] font-bold py-2 rounded">Promoção</button>
+                        <button onclick="addSticker('novidade')" class="bg-green-600 hover:bg-green-700 text-white text-[10px] font-bold py-2 rounded">Novidade</button>
+                        <button onclick="addSticker('top')" class="bg-purple-600 hover:bg-purple-700 text-white text-[10px] font-bold py-2 rounded">Top</button>
+                        <button onclick="addSticker('seta')" class="bg-brand hover:bg-brand-dark text-white text-[10px] font-bold py-2 rounded">Seta</button>
+                        <button onclick="addSticker('natural')" class="bg-green-700 hover:bg-green-800 text-white text-[10px] font-bold py-2 rounded">Natural</button>
+                        <button onclick="addSticker('premium')" class="bg-yellow-600 hover:bg-yellow-700 text-white text-[10px] font-bold py-2 rounded">Premium</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ABA: AVANÇADO -->
+            <div id="content-advanced" class="hidden p-4 sm:p-6 space-y-4 sm:space-y-6 overflow-y-auto flex-1">
+                
+                <div class="bg-gray-900 p-4 sm:p-5 rounded-lg border border-gray-700">
+                    <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">📐 Modo de Exibição</h3>
+                    <p class="text-xs text-gray-500 mb-3">Escolha "Grade" se tiver mais de 6 sabores.</p>
+                    <div class="flex gap-2">
+                        <button onclick="updateLayoutMode('list')" id="btn-layout-list" class="flex-1 py-3 rounded-lg text-xs sm:text-sm font-bold border border-gray-600 transition btn-layout-active">
+                            <i class="fas fa-list mb-1 block text-xl"></i> <span class="text-xs">Lista</span>
+                        </button>
+                        <button onclick="updateLayoutMode('grid')" id="btn-layout-grid" class="flex-1 py-3 rounded-lg text-xs sm:text-sm font-bold border border-gray-600 transition btn-layout-inactive">
+                            <i class="fas fa-th-large mb-1 block text-xl"></i> <span class="text-xs">Grade</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-gray-900 p-4 sm:p-5 rounded-lg border border-gray-700">
+                    <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">⚙️ Ajustes Finos</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-xs font-bold text-gray-400 flex justify-between mb-1"><span>Tamanho Título</span> <span id="val-title-size">130px</span></label>
+                            <input type="range" min="60" max="180" value="130" class="w-full" oninput="updateTitleSize(this.value)">
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-400 flex justify-between mb-1"><span>Opacidade Cards</span> <span id="val-card-opacity">92%</span></label>
+                            <input type="range" min="20" max="100" value="92" class="w-full" oninput="updateCardOpacity(this.value)">
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-400 flex justify-between mb-1"><span>Espaçamento</span> <span id="val-item-gap">24px</span></label>
+                            <input type="range" min="0" max="100" value="24" class="w-full" oninput="updateItemGap(this.value)">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gray-900 p-4 sm:p-5 rounded-lg border border-gray-700">
+                    <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">🎯 Presets</h3>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="applyPreset('premium')" class="bg-blue-600 hover:bg-blue-700 text-white py-2 rounded text-xs font-bold">💎 Premium</button>
+                        <button onclick="applyPreset('casual')" class="bg-green-600 hover:bg-green-700 text-white py-2 rounded text-xs font-bold">🎉 Casual</button>
+                    </div>
+                </div>
+
+                <button onclick="resetLayout()" class="w-full py-2 bg-red-600 hover:bg-red-700 text-white rounded text-sm font-bold transition"><i class="fas fa-undo mr-2"></i> Restaurar</button>
+            </div>
+        </aside>
+
+        <!-- WORKSPACE -->
+        <section id="workspace" class="flex-1 relative flex items-center justify-center overflow-y-auto sm:overflow-y-hidden">
+            
+            <div class="absolute top-2 sm:top-4 left-2 sm:left-4 z-40 bg-black/70 text-white px-3 sm:px-4 py-2 rounded-full text-xs font-bold backdrop-blur pointer-events-none">
+                <i class="fas fa-hand-sparkles mr-2"></i> <span class="hidden sm:inline">Edição Livre</span>
+            </div>
+            
+            <div class="absolute bottom-4 right-4 z-40 flex flex-col gap-2 bg-gray-950/80 backdrop-blur p-2 rounded-lg border border-gray-700">
+                <button onclick="changeZoom(0.05)" class="w-10 h-10 bg-brand hover:bg-brand-dark text-white rounded-lg flex items-center justify-center font-bold shadow-lg text-sm"><i class="fas fa-plus"></i></button>
+                <button onclick="changeZoom(-0.05)" class="w-10 h-10 bg-brand hover:bg-brand-dark text-white rounded-lg flex items-center justify-center font-bold shadow-lg text-sm"><i class="fas fa-minus"></i></button>
+                <button onclick="resetZoom()" class="w-10 h-10 bg-gray-700 hover:bg-gray-600 text-white rounded-lg flex items-center justify-center text-xs font-bold">100%</button>
+            </div>
+
+            <!-- ARTE -->
+            <div id="art-board" class="bg-white">
+                
+                <!-- Decor Fundo -->
+                <div class="absolute inset-0 pointer-events-none overflow-hidden opacity-60 z-0 bg-gradient-to-b from-white to-gray-50">
+                     <div class="absolute -top-[200px] -right-[200px] w-[800px] h-[800px] bg-brand opacity-10 rounded-full blur-[100px]"></div>
+                     <div class="absolute bottom-0 left-0 w-full h-[600px] bg-gradient-to-t from-white via-transparent to-transparent opacity-80"></div>
+                </div>
+
+                <!-- Textura -->
+                <div id="art-texture" class="absolute inset-0 pointer-events-none z-0 opacity-20"></div>
+
+                <!-- Imagem Fundo -->
+                <div id="art-custom-bg" class="absolute inset-0 bg-cover bg-center z-0 pointer-events-none transition-all duration-300" style="opacity: 0.5;"></div>
+
+                <div id="stickers-layer" class="absolute inset-0 pointer-events-none"></div>
+
+                <div id="logo-container" class="draggable" style="top: 100px; left: 540px; transform: translate(-50%, 0);">
+                    <img id="art-logo" src="" class="drop-shadow-2xl select-none pointer-events-none" style="height: 250px; display: none;">
+                    <div id="logo-placeholder" class="w-[300px] h-[300px] bg-brand/10 backdrop-blur-sm border-4 border-brand rounded-full flex flex-col items-center justify-center text-brand pointer-events-none shadow-xl">
+                        <i class="fas fa-ice-cream text-6xl mb-2 opacity-50"></i>
+                        <span class="font-bold text-2xl opacity-70">Sua Marca</span>
+                    </div>
+                </div>
+
+                <div id="art-header" class="draggable absolute w-full text-center" style="top: 450px; left: 0px;">
+                    <div class="inline-flex items-center gap-3 bg-white/95 backdrop-blur px-6 py-3 rounded-full shadow-lg mb-4 border border-brand/30">
+                        <i class="far fa-calendar-alt text-brand text-2xl"></i>
+                        <span id="art-date" class="text-3xl font-bold text-gray-700">HOJE</span>
+                    </div>
+                    
+                    <h1 id="art-main-title" class="leading-none text-brand drop-shadow-lg" style="text-shadow: 2px 2px 0px rgba(255,255,255,1), 4px 4px 5px rgba(0,0,0,0.1); font-size: 130px; font-family: 'Playfair Display', serif;">
+                        Sabores do Dia
+                    </h1>
+                    <p class="text-4xl font-light text-gray-600 tracking-widest uppercase mt-4 drop-shadow-md" id="art-msg">Geladinhos Gourmet</p>
+                </div>
+
+                <div id="art-flavors-container" class="draggable absolute w-full px-12" style="top: 750px; left: 0px;">
+                    <div id="art-flavors" class="w-full flex flex-col items-center" style="gap: 24px;">
+                    </div>
+                </div>
+
+                <div id="art-footer" class="draggable absolute w-full h-[300px]" style="top: 1620px; left: 0px;">
+                    <svg class="absolute bottom-0 w-full h-full text-white/95" viewBox="0 0 1440 320" preserveAspectRatio="none">
+                        <path fill="currentColor" fill-opacity="1" d="M0,96L48,112C96,128,192,160,288,186.7C384,213,480,235,576,213.3C672,192,768,128,864,122.7C960,117,1056,171,1152,197.3C1248,224,1344,224,1392,224L1440,224L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+                    </svg>
+
+                    <div class="absolute bottom-0 w-full h-[220px] px-16 flex items-center justify-between pb-8">
+                        <div class="flex items-center gap-6 bg-white p-4 rounded-3xl shadow-2xl border-l-8 border-brand">
+                            <div class="bg-brand text-white w-20 h-20 rounded-2xl flex items-center justify-center text-4xl shadow-inner">
+                                <i class="fas fa-qrcode"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-400 font-bold uppercase tracking-wider">Pagamento Pix</p>
+                                <p class="text-3xl font-extrabold text-gray-800 font-mono" id="art-pix">CHAVE-PIX</p>
+                                <div class="flex items-center gap-2 text-green-600 font-bold mt-1 text-sm">
+                                    <i class="fas fa-check-circle"></i> Envie comprovante
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-right opacity-70">
+                            <div class="flex justify-end gap-3 text-5xl text-gray-600 mb-2">
+                                <i class="fab fa-cc-visa"></i>
+                                <i class="fab fa-cc-mastercard"></i>
+                            </div>
+                            <p class="text-sm font-bold uppercase tracking-widest text-gray-500">Aceitamos Cartões</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const defaultPositions = {
+            'logo-container': { top: 100, left: 540 },
+            'art-header': { top: 450, left: 0 },
+            'art-flavors-container': { top: 750, left: 0 },
+            'art-footer': { top: 1620, left: 0 }
+        };
+
+        let appData = {
+            date: "",
+            message: "Geladinhos Gourmet",
+            pix: "",
+            logo: null,
+            background: { img: null, opacity: 50 },
+            logoScale: 100,
+            positions: { ...defaultPositions },
+            stickers: [],
+            style: {
+                brandColor: "#D4AF37",
+                secondaryColor: "#C41E3A",
+                titleSize: 130,
+                fontFamily: "Playfair Display",
+                cardOpacity: 92,
+                itemGap: 24,
+                layoutMode: 'list',
+                texture: 'none'
+            },
+            flavors: [
+                { id: 1, name: "Ninho com Nutella", price: 5.00, active: true, isNew: true, img: null },
+                { id: 2, name: "Morango do Nordeste", price: 4.50, active: true, isNew: false, img: null }
+            ]
+        };
+
+        let currentZoom = 0.35;
+        let isDragging = false;
+        let currentDragElement = null;
+        let selectedStickerId = null;
+        let dragOffset = { x: 0, y: 0 };
+
+        // ========== INICIALIZAÇÃO ==========
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+            initDraggables();
+            renderFlavorList();
+            updateArt();
+            resizeWorkspace();
+            setupFormListener();
+            window.addEventListener('resize', resizeWorkspace);
+        });
+
+        // ========== ARMAZENAMENTO ==========
+        function saveData() {
+            localStorage.setItem('goldProAppData', JSON.stringify(appData));
+        }
+
+        function loadData() {
+            const saved = localStorage.getItem('goldProAppData');
+            if(saved) {
+                try {
+                    appData = JSON.parse(saved);
+                    document.getElementById('customDate').value = appData.date || "";
+                    document.getElementById('dailyMessage').value = appData.message || "";
+                    document.getElementById('pixKey').value = appData.pix || "";
+                    document.getElementById('brandColorInput').value = appData.style.brandColor;
+                    document.getElementById('secondaryColorInput').value = appData.style.secondaryColor;
+                    document.getElementById('fontFamilyInput').value = appData.style.fontFamily;
+                    applyStyles();
+                } catch(e) {
+                    console.error('Erro ao carregar dados:', e);
+                }
+            }
+        }
+
+        // ========== UI INTERATIVA ==========
+        function switchTab(tab) {
+            const tabs = ['data', 'design', 'advanced'];
+            tabs.forEach(t => {
+                const content = document.getElementById('content-' + t);
+                const button = document.getElementById('tab-' + t);
+                if(t === tab) {
+                    content.classList.remove('hidden');
+                    button.classList.add('tab-active');
+                    button.classList.remove('tab-inactive');
+                } else {
+                    content.classList.add('hidden');
+                    button.classList.remove('tab-active');
+                    button.classList.add('tab-inactive');
+                }
+            });
+        }
+
+        function closePanels() {
+            const panel = document.getElementById('control-panel');
+            const overlay = document.getElementById('mobilePanel');
+            panel.classList.add('-translate-x-full');
+            overlay.classList.add('hidden');
+        }
+
+        function toggleMobilePanel() {
+            const panel = document.getElementById('control-panel');
+            const overlay = document.getElementById('mobilePanel');
+            panel.classList.toggle('-translate-x-full');
+            overlay.classList.toggle('hidden');
+        }
+
+        function showMoreMenu() {
+            const menu = document.getElementById('moreMenu');
+            menu.classList.toggle('hidden');
+        }
+
+        // ========== FORMULÁRIO DE SABORES ==========
+        function setupFormListener() {
+            document.getElementById('flavorForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const name = document.getElementById('fName').value;
+                const price = parseFloat(document.getElementById('fPrice').value);
+                
+                if(!name || !price) return;
+
+                const id = Math.max(...appData.flavors.map(f => f.id), 0) + 1;
+                appData.flavors.push({
+                    id,
+                    name,
+                    price,
+                    active: true,
+                    isNew: false,
+                    img: null
+                });
+
+                resetForm();
+                renderFlavorList();
+                updateArt();
+                saveData();
+            });
+        }
+
+        function resetForm() {
+            document.getElementById('flavorForm').reset();
+            document.getElementById('fName').focus();
+        }
+
+        function renderFlavorList() {
+            const list = document.getElementById('flavorList');
+            list.innerHTML = appData.flavors.map(f => `
+                <li class="flex justify-between items-center p-3 bg-gray-800 border border-gray-700 rounded shadow-md hover:bg-gray-700 transition text-sm">
+                    <div class="flex items-center gap-2 overflow-hidden flex-1">
+                        <button onclick="toggleFlavor(${f.id})" class="text-lg flex-shrink-0 ${f.active ? 'text-green-400' : 'text-gray-500'}"><i class="fas fa-check-circle"></i></button>
+                        <span class="text-white truncate flex-1">${f.name}</span>
+                        <button onclick="toggleFlavorNew(${f.id})" class="text-lg flex-shrink-0 ${f.isNew ? 'text-yellow-400' : 'text-gray-600'} hover:text-yellow-300" title="Destaque"><i class="fas fa-star"></i></button>
+                    </div>
+                    <button onclick="deleteFlavor(${f.id})" class="text-red-400 hover:text-red-300 px-2 ml-2 flex-shrink-0"><i class="fas fa-trash"></i></button>
+                </li>
+            `).join('');
+        }
+
+        function toggleFlavor(id) {
+            const f = appData.flavors.find(x => x.id === id);
+            if(f) {
+                f.active = !f.active;
+                saveData();
+                renderFlavorList();
+                updateArt();
+            }
+        }
+
+        function toggleFlavorNew(id) {
+            const f = appData.flavors.find(x => x.id === id);
+            if(f) {
+                f.isNew = !f.isNew;
+                saveData();
+                renderFlavorList();
+                updateArt();
+            }
+        }
+
+        function deleteFlavor(id) {
+            appData.flavors = appData.flavors.filter(x => x.id !== id);
+            saveData();
+            renderFlavorList();
+            updateArt();
+        }
+
+        function previewFlavorImage(input) {
+            if(!input.files[0]) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = e.target.result;
+                const lastFlavor = appData.flavors[appData.flavors.length - 1];
+                if(lastFlavor) {
+                    lastFlavor.img = img;
+                    saveData();
+                    updateArt();
+                }
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+
+        // ========== DESIGN & ESTILO ==========
+        function updateBrandColor(color) {
+            appData.style.brandColor = color;
+            applyStyles();
+            saveData();
+        }
+
+        function updateSecondaryColor(color) {
+            appData.style.secondaryColor = color;
+            applyStyles();
+            saveData();
+        }
+
+        function updateFontFamily(font) {
+            appData.style.fontFamily = font;
+            applyStyles();
+            saveData();
+        }
+
+        function updateTexture(texture) {
+            appData.style.texture = texture;
+            applyStyles();
+            saveData();
+        }
+
+        function updateTitleSize(size) {
+            appData.style.titleSize = parseInt(size);
+            document.getElementById('val-title-size').innerText = size + 'px';
+            updateArt();
+            saveData();
+        }
+
+        function updateCardOpacity(opacity) {
+            appData.style.cardOpacity = parseInt(opacity);
+            document.getElementById('val-card-opacity').innerText = opacity + '%';
+            updateArt();
+            saveData();
+        }
+
+        function updateItemGap(gap) {
+            appData.style.itemGap = parseInt(gap);
+            document.getElementById('val-item-gap').innerText = gap + 'px';
+            updateArt();
+            saveData();
+        }
+
+        function updateLayoutMode(mode) {
+            appData.style.layoutMode = mode;
+            const btnList = document.getElementById('btn-layout-list');
+            const btnGrid = document.getElementById('btn-layout-grid');
+            
+            if(mode === 'list') {
+                btnList.classList.add('btn-layout-active');
+                btnList.classList.remove('btn-layout-inactive');
+                btnGrid.classList.remove('btn-layout-active');
+                btnGrid.classList.add('btn-layout-inactive');
+            } else {
+                btnGrid.classList.add('btn-layout-active');
+                btnGrid.classList.remove('btn-layout-inactive');
+                btnList.classList.remove('btn-layout-active');
+                btnList.classList.add('btn-layout-inactive');
+            }
+            updateArt();
+            saveData();
+        }
+
+        function uploadMainLogo(input) {
+            if(!input.files[0]) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                appData.logo = e.target.result;
+                updateArt();
+                saveData();
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+
+        function uploadBgImage(input) {
+            if(!input.files[0]) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                appData.background.img = e.target.result;
+                updateArt();
+                saveData();
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+
+        function clearBgImage() {
+            appData.background.img = null;
+            document.getElementById('art-custom-bg').style.backgroundImage = '';
+            saveData();
+        }
+
+        function adjustLogoScale(scale) {
+            appData.logoScale = parseInt(scale);
+            document.getElementById('val-scale').innerText = scale + '%';
+            const logo = document.getElementById('art-logo');
+            if(logo && logo.style.display !== 'none') {
+                logo.style.height = (250 * scale / 100) + 'px';
+            }
+            saveData();
+        }
+
+        function adjustBgOpacity(opacity) {
+            appData.background.opacity = parseInt(opacity);
+            document.getElementById('val-bg-opacity').innerText = opacity + '%';
+            const bgDiv = document.getElementById('art-custom-bg');
+            bgDiv.style.opacity = (opacity / 100);
+            saveData();
+        }
+
+        function applyStyles() {
+            document.documentElement.style.setProperty('--brand-color', appData.style.brandColor);
+            document.documentElement.style.setProperty('--secondary', appData.style.secondaryColor);
+            
+            const texEl = document.getElementById('art-texture');
+            texEl.className = `absolute inset-0 pointer-events-none z-0 opacity-20 ${appData.style.texture}`;
+
+            const title = document.getElementById('art-main-title');
+            if(title) {
+                title.style.fontSize = appData.style.titleSize + 'px';
+                title.style.fontFamily = `"${appData.style.fontFamily}", serif`;
+                title.style.color = appData.style.brandColor;
+            }
+        }
+
+        // ========== RENDERIZAÇÃO PRINCIPAL ==========
+        function updateMessage() {
+            appData.message = document.getElementById('dailyMessage').value;
+            document.getElementById('art-msg').innerText = appData.message || "Geladinhos Gourmet";
+            saveData();
+        }
+
+        function updatePix() {
+            appData.pix = document.getElementById('pixKey').value;
+            document.getElementById('art-pix').innerText = appData.pix || "Peça a Chave";
+            saveData();
+        }
+
+        function updateArt() {
+            const dateStr = document.getElementById('customDate').value || new Date().toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'});
+            appData.date = dateStr;
+            document.getElementById('art-date').innerText = dateStr;
+
+            const logoImg = document.getElementById('art-logo');
+            const logoPlace = document.getElementById('logo-placeholder');
+            
+            if(appData.logo) {
+                logoImg.src = appData.logo;
+                logoImg.style.display = 'block';
+                logoImg.style.height = (250 * appData.logoScale / 100) + 'px';
+                logoPlace.style.display = 'none';
+            } else {
+                logoImg.style.display = 'none';
+                logoPlace.style.display = 'flex';
+            }
+
+            const bgDiv = document.getElementById('art-custom-bg');
+            if(appData.background.img) {
+                bgDiv.style.backgroundImage = `url('${appData.background.img}')`;
+                bgDiv.style.opacity = appData.background.opacity / 100;
+            } else {
+                bgDiv.style.backgroundImage = '';
+            }
+
+            renderFlavors();
+            renderStickers();
+            saveData();
+        }
+
+        function renderFlavors() {
+            const container = document.getElementById('art-flavors');
+            const activeFlavors = appData.flavors.filter(f => f.active);
+            container.innerHTML = "";
+            container.style.gap = (appData.style.itemGap || 24) + 'px';
+
+            const isGrid = appData.style.layoutMode === 'grid';
+            
+            if(isGrid) {
+                container.className = "grid grid-cols-2 w-full px-8 content-start";
+            } else {
+                container.className = "w-full flex flex-col items-center px-12";
+            }
+
+            activeFlavors.forEach(f => {
+                const el = document.createElement('div');
+                const opacity = (appData.style.cardOpacity || 92) / 100;
+                
+                el.style.backgroundColor = `rgba(255, 255, 255, ${opacity})`;
+                el.style.borderRadius = '32px';
+                
+                if(isGrid) {
+                    el.className = "glass-item p-4 flex flex-col items-center text-center gap-2 w-full relative overflow-hidden transition-all shadow-lg min-h-[180px]";
+                    const imgHtml = f.img 
+                        ? `<img src="${f.img}" class="w-20 h-20 rounded-full object-cover border-4 border-white shadow-md">`
+                        : `<div class="w-20 h-20 rounded-full bg-brand/5 border-4 border-brand/30 shadow-md flex items-center justify-center text-3xl text-brand"><i class="fas fa-ice-cream"></i></div>`;
+                    
+                    el.innerHTML = `
+                        ${imgHtml}
+                        <div class="flex-1 flex flex-col justify-center w-full">
+                            <h3 class="text-2xl font-bold text-gray-700 leading-tight mb-2 line-clamp-2">${f.name}</h3>
+                            <div class="mt-auto">
+                                <span class="text-white text-xl font-extrabold px-4 py-1 rounded-full shadow-md inline-block" style="background: ${appData.style.brandColor};">
+                                    R$ ${f.price.toFixed(2).replace('.',',')}
+                                </span>
+                            </div>
+                        </div>
+                        ${f.isNew ? '<div class="absolute top-2 right-2 text-yellow-400 text-xl drop-shadow-md"><i class="fas fa-star"></i></div>' : ''}
+                    `;
+                } else {
+                    el.className = "glass-item p-6 flex items-center gap-5 w-full relative overflow-hidden transition-all min-h-[140px] shadow-lg";
+                    const imgHtml = f.img 
+                        ? `<img src="${f.img}" class="w-28 h-28 rounded-full object-cover border-4 border-white shadow-lg flex-shrink-0">`
+                        : `<div class="w-28 h-28 rounded-full bg-brand/5 border-4 border-brand/30 shadow-md flex-shrink-0 flex items-center justify-center text-5xl text-brand"><i class="fas fa-ice-cream"></i></div>`;
+                    
+                    el.innerHTML = `
+                        ${imgHtml}
+                        <div class="flex-1 min-w-0 flex flex-col justify-center h-full py-2">
+                            <h3 class="text-4xl font-bold text-gray-700 leading-relaxed tracking-tight mb-2 pr-2 pb-1">${f.name}</h3>
+                            <div class="flex items-center gap-3">
+                                <span class="text-white text-3xl font-extrabold px-6 py-1 rounded-full shadow-lg inline-block" style="background: ${appData.style.brandColor};">
+                                    R$ ${f.price.toFixed(2).replace('.',',')}
+                                </span>
+                                ${f.isNew ? '<span class="text-xs font-bold text-green-600 bg-green-100 border border-green-300 px-2 py-1 rounded uppercase">✨ Novo</span>' : ''}
+                            </div>
+                        </div>
+                    `;
+                }
+                container.appendChild(el);
+            });
+        }
+
+        // ========== ADESIVOS ==========
+        function addSticker(type) {
+            const id = 'sticker-' + Date.now();
+            const sticker = { id, type, x: 540, y: 400, scale: 100 };
+            appData.stickers.push(sticker);
+            renderStickers();
+            selectSticker(id);
+            saveData();
+        }
+
+        function removeSticker(id) {
+            appData.stickers = appData.stickers.filter(s => s.id !== id);
+            if(selectedStickerId === id) {
+                selectedStickerId = null;
+                document.getElementById('sticker-scale-input').disabled = true;
+            }
+            renderStickers();
+            saveData();
+        }
+
+        function selectSticker(id) {
+            document.querySelectorAll('.sticker-item').forEach(s => s.classList.remove('selected'));
+            const el = document.getElementById(id);
+            if(el) {
+                el.classList.add('selected');
+                selectedStickerId = id;
+                document.getElementById('sticker-scale-input').disabled = false;
+                const sticker = appData.stickers.find(s => s.id === id);
+                if(sticker) document.getElementById('sticker-scale-input').value = sticker.scale;
+            }
+        }
+
+        function adjustSelectedStickerScale(scale) {
+            const sticker = appData.stickers.find(s => s.id === selectedStickerId);
+            if(sticker) {
+                sticker.scale = parseInt(scale);
+                document.getElementById('val-sticker-scale').innerText = scale + '%';
+                renderStickers();
+                saveData();
+            }
+        }
+
+        function getStickerContent(type) {
+            const stickerTexts = {
+                'promo': '🔥 PROMOÇÃO',
+                'novidade': '✨ NOVIDADE',
+                'top': '⭐ TOP',
+                'seta': '→',
+                'natural': '🌿 NATURAL',
+                'premium': '👑 PREMIUM'
+            };
+            return stickerTexts[type] || type;
+        }
+
+        function getStickerStyle(type) {
+            const styles = {
+                'promo': 'bg-red-600 text-white font-bold',
+                'novidade': 'bg-green-500 text-white font-bold',
+                'top': 'bg-purple-600 text-white font-bold',
+                'seta': 'bg-brand text-white text-3xl',
+                'natural': 'bg-green-700 text-white font-bold',
+                'premium': 'bg-yellow-500 text-gray-900 font-bold'
+            };
+            return styles[type] || 'bg-gray-600 text-white';
+        }
+
+        function renderStickers() {
+            const layer = document.getElementById('stickers-layer');
+            layer.innerHTML = "";
+
+            appData.stickers.forEach(sticker => {
+                const scale = sticker.scale / 100;
+                const size = 120 * scale;
+                
+                const el = document.createElement('div');
+                el.id = sticker.id;
+                el.className = `sticker-item draggable flex items-center justify-center ${getStickerStyle(sticker.type)}`;
+                el.style.width = size + 'px';
+                el.style.height = size + 'px';
+                el.style.left = sticker.x + 'px';
+                el.style.top = sticker.y + 'px';
+                el.style.borderRadius = '50%';
+                el.style.fontSize = (18 * scale) + 'px';
+                el.innerHTML = getStickerContent(sticker.type);
+                el.onclick = (e) => { e.stopPropagation(); selectSticker(sticker.id); };
+
+                layer.appendChild(el);
+            });
+
+            initDraggables();
+        }
+
+        // ========== PRESETS ==========
+        function applyPreset(preset) {
+            if(preset === 'premium') {
+                appData.style.brandColor = '#FFD700';
+                appData.style.secondaryColor = '#8B0000';
+                appData.style.fontFamily = 'Bodoni Moda';
+                appData.style.cardOpacity = 95;
+                document.getElementById('brandColorInput').value = '#FFD700';
+                document.getElementById('secondaryColorInput').value = '#8B0000';
+                document.getElementById('fontFamilyInput').value = 'Bodoni Moda';
+            } else if(preset === 'casual') {
+                appData.style.brandColor = '#FF6B9D';
+                appData.style.secondaryColor = '#C44569';
+                appData.style.fontFamily = 'Poppins';
+                appData.style.cardOpacity = 88;
+                document.getElementById('brandColorInput').value = '#FF6B9D';
+                document.getElementById('secondaryColorInput').value = '#C44569';
+                document.getElementById('fontFamilyInput').value = 'Poppins';
+            }
+            applyStyles();
+            updateArt();
+            saveData();
+        }
+
+        // ========== DRAG & DROP ==========
+        function initDraggables() {
+            document.querySelectorAll('.draggable').forEach(el => {
+                el.addEventListener('mousedown', startDrag);
+                el.addEventListener('touchstart', startDrag);
+            });
+        }
+
+        function startDrag(e) {
+            isDragging = true;
+            currentDragElement = e.currentTarget;
+            const rect = currentDragElement.getBoundingClientRect();
+            const board = document.getElementById('art-board').getBoundingClientRect();
+            
+            dragOffset.x = (e.clientX || e.touches[0].clientX) - rect.left;
+            dragOffset.y = (e.clientY || e.touches[0].clientY) - rect.top;
+
+            document.addEventListener('mousemove', moveDrag);
+            document.addEventListener('touchmove', moveDrag);
+            document.addEventListener('mouseup', endDrag);
+            document.addEventListener('touchend', endDrag);
+        }
+
+        function moveDrag(e) {
+            if(!isDragging || !currentDragElement) return;
+            
+            const board = document.getElementById('art-board');
+            const rect = board.getBoundingClientRect();
+            
+            let x = (e.clientX || e.touches[0].clientX) - rect.left - dragOffset.x;
+            let y = (e.clientY || e.touches[0].clientY) - rect.top - dragOffset.y;
+
+            x = Math.max(0, Math.min(x, 1080));
+            y = Math.max(0, Math.min(y, 1920));
+
+            currentDragElement.style.left = x + 'px';
+            currentDragElement.style.top = y + 'px';
+        }
+
+        function endDrag() {
+            isDragging = false;
+            if(currentDragElement) {
+                const id = currentDragElement.id;
+                const left = parseInt(currentDragElement.style.left);
+                const top = parseInt(currentDragElement.style.top);
+
+                if(id.includes('sticker-')) {
+                    const sticker = appData.stickers.find(s => s.id === id);
+                    if(sticker) {
+                        sticker.x = left;
+                        sticker.y = top;
+                    }
+                } else {
+                    appData.positions[id] = { left, top };
+                }
+                saveData();
+            }
+            currentDragElement = null;
+            document.removeEventListener('mousemove', moveDrag);
+            document.removeEventListener('touchmove', moveDrag);
+            document.removeEventListener('mouseup', endDrag);
+            document.removeEventListener('touchend', endDrag);
+        }
+
+        // ========== ZOOM ==========
+        function changeZoom(delta) {
+            currentZoom = Math.max(0.1, Math.min(currentZoom + delta, 1));
+            const board = document.getElementById('art-board');
+            board.style.transform = `translate(-50%, -50%) scale(${currentZoom})`;
+            document.querySelector('.absolute.bottom-4').querySelector('.text-xs').innerText = Math.round(currentZoom * 100) + '%';
+        }
+
+        function resetZoom() {
+            currentZoom = 0.35;
+            const board = document.getElementById('art-board');
+            board.style.transform = `translate(-50%, -50%) scale(${currentZoom})`;
+        }
+
+        function resizeWorkspace() {
+            const workspace = document.getElementById('workspace');
+            const header = document.querySelector('header');
+            const height = window.innerHeight - header.offsetHeight;
+            workspace.style.minHeight = height + 'px';
+        }
+
+        // ========== EXPORTAÇÃO ==========
+        async function generateImage() {
+            const btn = document.getElementById('downloadBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Gerando...';
+            
+            try {
+                const board = document.getElementById('art-board');
+                const scale = 2;
+                const canvas = await html2canvas(board, {
+                    scale: scale,
+                    useCORS: true,
+                    backgroundColor: '#ffffff',
+                    logging: false
+                });
+                
+                const link = document.createElement('a');
+                link.href = canvas.toDataURL('image/png');
+                link.download = 'cardapio-' + new Date().getTime() + '.png';
+                link.click();
+            } catch(e) {
+                alert('Erro ao gerar imagem: ' + e.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-download"></i> <span class="hidden sm:inline">Baixar</span>';
+            }
+        }
+
+        function exportJSON() {
+            const json = JSON.stringify(appData, null, 2);
+            const link = document.createElement('a');
+            link.href = 'data:application/json,' + encodeURIComponent(json);
+            link.download = 'cardapio-config-' + new Date().getTime() + '.json';
+            link.click();
+        }
+
+        function importJSON() {
+            document.getElementById('importFile').click();
+        }
+
+        document.getElementById('importFile').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if(!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const imported = JSON.parse(event.target.result);
+                    appData = { ...appData, ...imported };
+                    location.reload();
+                } catch(err) {
+                    alert('Erro ao importar: ' + err.message);
+                }
+            };
+            reader.readAsText(file);
+        });
+
+        function resetLayout() {
+            if(confirm('Restaurar todas as configurações padrão?')) {
+                localStorage.removeItem('goldProAppData');
+                location.reload();
+            }
+        }
+    </script>
+</body>
+</html>
